@@ -83,3 +83,27 @@ Recommended composition, pending approval: **Archivo `wght` at width 100 + one s
 - **Interim logo.** The header shows the people-mark cropped from the PNG plus the name set in type, because the PNG wordmark is 2.5:1 on navy. Replaced when Q16 lands.
 - **First-load measurement.** `scripts/first-load.mjs` starts the production server, fetches each route and sums gzipped bytes of every module script (excluding the `nomodule` core-js polyfill that module browsers never download). Baseline with an empty page: **141.7 KB gzip** — react-dom 69.9, App Router runtime 44.0, the rest small. That is the framework floor on Next 16 / React 19.2 canary; the 200 KB budget leaves ~58 KB for everything else.
 - **`motion` is not imported anywhere.** The home route's interactive pieces are CSS transitions.
+
+## 2026-09-18 — Milestone 3, The Roster: judgement calls and proofs
+
+- **GSAP-free canvas.** Positions are a pure function of scroll (state index + progress from slot rects), so ScrollTrigger would add ~14 KB for nothing. GSAP is used where it earns its place: SplitText (hero) and DrawSVG (lifecycle path).
+- **Document-space anchoring.** Every layout is computed in document coordinates from its slot's rect; the fixed canvas draws at `y - scrollY`. Marks therefore travel with the page between slots, and an iOS toolbar collapse (which changes `innerHeight`, not the document) cannot dislocate them.
+- **Reading-order sort.** Every layout is sorted by (y, x) so mark *i* is a spatial neighbour of itself across states; transitions move in sheets instead of tangling.
+- **Canvas z-order.** The canvas sits *above* section backgrounds (z-20) and below the header (z-40), pointer-events none. Slots are placed where there is no text; marks may cross text briefly mid-transition, which is accepted.
+- **Save-Data: no canvas at all.** The brief's "static SVG per state" was there to avoid shipping the canvas JS; the status line and section captions already state every state in text, so under Save-Data the Roster chunk is simply never loaded. Cheaper than pre-rendering six SVGs and the same intent.
+- **Renderer.** Per-mark `drawImage` measured 17–28 ms/frame at 5,000 marks @2× in headless Chromium; batched path fills grouped by colour × 8 alpha steps measured ~2 ms. Shipped the batched version: **2.8–4.8 ms work per frame** across all states, 3× under the 12 ms budget, before GPU rasterisation.
+- **Mark colours in the final state.** Heads are `--signal`, bodies and arc are `--ink-light`. Lime stays out of the palette; the Roster depicts the mark's shape, it does not reproduce the logo asset.
+- **Column highlight.** Active column draws in `--signal-deep` at full alpha on paper; the other six at 0.55×.
+
+### Proofs (headless Chromium 1228, production build, `scripts/roster-proofs.py`)
+
+| Proof | Result |
+|---|---|
+| Every state reachable, 2× DPR | All six render crisp; n = 5,000 at 1280×900, 935 at 390×664 |
+| Scroll-fling snap | Lenis fling from hero to end: `snapped=true`, states seen `drift → columns→path → mark`. Never passed through grid or map. Threshold 2.5 viewport-heights/s reads Lenis's target scroll |
+| Scrollbar-drag equivalent (instant jump) | States seen `drift → mark`, nothing between |
+| Viewport resize mid-scroll (address-bar analogue) | Buffer 1328 → 1488 → 1328 device px, CSS height follows `innerHeight`, scrollY unchanged, no errors |
+| `useGSAP` under React Compiler | Harness title SplitText runs; `react-hooks` compiler rules pass lint; no runtime errors. One compiler rule caught a ref write during render in the Roster, fixed to an effect |
+| Reduced motion | Mode `static`, no loop, states quantised, Lenis not mounted |
+
+**Not proven here:** real iOS Safari. Playwright's Chromium resize exercises the same code path (resize → re-buffer → re-measure), but the iOS toolbar transition, rubber-banding and `position: fixed` repaint behaviour need a device. Flagged at the milestone-3 stop.
