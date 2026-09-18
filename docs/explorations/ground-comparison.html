@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TDL ground comparison</title>
+<!-- Exploration page only. The site itself self-hosts Archivo through next/font. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-family: "Archivo", system-ui, sans-serif; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+  body { background: #d9d9d4; color: #1F2113; }
+
+  /* Ground variants. Only the ground-derived tokens change; olive and cyan are the logo's. */
+  [data-ground="olive"] { --ink: #1F2113; --paper: #F8F8F2; --light: #AFB08D; }
+  [data-ground="teal"]  { --ink: #122326; --paper: #F5F8F8; --light: #8DABB0; }
+  [data-ground="navy"]  { --ink: #0F1B2D; --paper: #FAFAF8; --light: #8D97B0; }
+  .variant { --olive: #606135; --signal: #54C4D0; --signal-deep: #1C7580; margin: 0 0 48px; }
+
+  .label { font-size: 13px; padding: 12px 24px; background: #c9c9c2; color: #1F2113; display: flex; gap: 24px; }
+  .label b { font-weight: 600; }
+
+  /* Header */
+  .hdr { background: var(--ink); color: var(--paper); display: grid; grid-template-columns: 1fr auto auto; gap: 32px; align-items: center; padding: 16px 40px; border-bottom: 1px solid var(--light); }
+  .hdr img { height: 34px; display: block; }
+  .hdr nav { display: flex; gap: 24px; font-size: 15px; }
+  .hdr .status { font-size: 13px; font-stretch: 87%; color: var(--light); }
+  .btn { display: inline-block; background: var(--signal); color: var(--ink); font-weight: 600; font-size: 15px; padding: 12px 20px; border-radius: 2px; text-decoration: none; }
+  .link { color: var(--paper); text-decoration: underline; text-underline-offset: 4px; font-size: 15px; margin-left: 24px; }
+
+  /* Hero */
+  .hero { position: relative; background: var(--ink); color: var(--paper); min-height: 560px; overflow: hidden; }
+  .hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hero .copy { position: relative; padding: 96px 40px 64px; max-width: 760px; }
+  h1 { font-stretch: 125%; font-weight: 700; font-size: 56px; line-height: 1.02; letter-spacing: -0.01em; }
+  .hero p { margin-top: 24px; font-size: 19px; line-height: 1.45; max-width: 34em; color: var(--paper); }
+  .hero .cta { margin-top: 36px; display: flex; align-items: center; }
+  .hero .cap { position: relative; padding: 0 40px 24px; font-size: 13px; font-stretch: 87%; color: var(--light); }
+
+  /* Proof bar (still ink) */
+  .proof { background: var(--ink); color: var(--paper); border-top: 1px solid var(--light); padding: 28px 40px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .proof .k { font-size: 13px; font-stretch: 87%; color: var(--light); }
+  .proof .v { font-stretch: 125%; font-weight: 600; font-size: 34px; margin-top: 6px; color: var(--signal); }
+  .proof .v.static { color: var(--paper); }
+
+  /* Paper section */
+  .paper { background: var(--paper); color: var(--ink); padding: 72px 40px; display: grid; grid-template-columns: 200px 1fr; gap: 40px; }
+  .paper .cap { font-size: 13px; font-stretch: 87%; color: var(--olive); line-height: 1.5; }
+  .paper .cap b { display: block; font-size: 15px; font-stretch: 100%; font-weight: 500; color: var(--ink); margin-bottom: 6px; }
+  .rows { max-width: 640px; }
+  .row { border-top: 1px solid var(--olive); padding: 18px 0; }
+  .row:last-child { border-bottom: 1px solid var(--olive); }
+  .row h3 { font-size: 20px; font-weight: 500; }
+  .row.active h3 { color: var(--signal-deep); }
+  .row p { margin-top: 8px; font-size: 16px; line-height: 1.5; max-width: 36em; }
+  .row a { color: var(--signal-deep); font-size: 15px; text-decoration: underline; text-underline-offset: 4px; display: inline-block; margin-top: 8px; }
+  .row .muted { color: var(--olive); }
+  blockquote { margin-top: 56px; max-width: 30em; font-weight: 300; font-size: 30px; line-height: 1.35; }
+  blockquote footer { margin-top: 16px; font-size: 15px; font-weight: 400; color: var(--olive); }
+
+  /* Contrast table */
+  table { border-collapse: collapse; width: 100%; font-size: 13px; background: #fff; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #ccc; }
+  th { font-weight: 600; }
+  td.sw span { display: inline-block; width: 14px; height: 14px; vertical-align: middle; margin-right: 6px; border: 1px solid #999; }
+  .pass { color: #1a6b2a; font-weight: 600; } .fail { color: #b3261e; font-weight: 600; }
+  .tbl { padding: 16px 24px 24px; background: #e6e6e1; }
+  .tbl h2 { font-size: 15px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<template id="variant">
+  <section class="variant">
+    <div class="label"><b class="name"></b><span class="ink"></span><span class="note"></span></div>
+
+    <header class="hdr">
+      <img src="tdl-logo.png" alt="Total Data Limited">
+      <nav><span>Services</span><span>Work</span><span>About</span><span>Careers</span><span>Contact</span></nav>
+      <div><span class="status">Showing 5,000 people, unassigned</span> <a class="btn" style="margin-left:24px">Become a client</a></div>
+    </header>
+
+    <div class="hero">
+      <canvas></canvas>
+      <div class="copy">
+        <h1>5,000 people go to work for our clients every morning.</h1>
+        <p>End-to-end HR and business process outsourcing across Nigeria and Benin Republic, since 2000.</p>
+        <div class="cta"><a class="btn">Become a client</a><a class="link">See the services</a></div>
+      </div>
+      <div class="cap">Each mark is one managed employee. Canvas is decorative; this line states what it shows.</div>
+    </div>
+
+    <div class="proof">
+      <div><div class="k">Managed staff</div><div class="v">5,000+</div></div>
+      <div><div class="k">Clients</div><div class="v">100+</div></div>
+      <div><div class="k">Operating</div><div class="v static">since 2000</div></div>
+      <div><div class="k">Certified</div><div class="v static">ISO 9001:2015</div></div>
+    </div>
+
+    <div class="paper">
+      <div class="cap"><b>Services</b>5,000 people<br>by service line</div>
+      <div>
+        <div class="rows">
+          <div class="row"><h3>HR outsourcing</h3></div>
+          <div class="row active">
+            <h3>Payroll management</h3>
+            <p>Statutory PAYE, pension and HMO remittance, off your desk. <span class="muted">One payroll calendar across every state you operate in.</span></p>
+            <a>Read about payroll</a>
+          </div>
+          <div class="row"><h3>Recruitment and background checks</h3></div>
+          <div class="row"><h3>Business process outsourcing</h3></div>
+        </div>
+        <blockquote>“They have consistently provided a high level of service, and their people are professional and responsive.”<footer>Name, Title, Carlcare Development Nigeria</footer></blockquote>
+      </div>
+    </div>
+
+    <div class="tbl"><h2>AA check</h2><table><thead><tr><th>Pair</th><th>Foreground</th><th>Ground</th><th>Ratio</th><th>Needs</th><th></th></tr></thead><tbody></tbody></table></div>
+  </section>
+</template>
+
+<script>
+const variants = [
+  { key: 'olive', name: '(a) Olive-black', note: 'ink derived from the wordmark olive #606135' },
+  { key: 'teal',  name: '(b) Teal-black',  note: 'ink derived from the logo cyan #54C4D0, desaturated' },
+  { key: 'navy',  name: '(c) Navy',        note: 'the brief’s original #0F1B2D, cyan and olive accents kept' },
+];
+const lum = ([r,g,b]) => { const f = v => { v/=255; return v<=0.03928 ? v/12.92 : ((v+0.055)/1.055)**2.4 }; return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b) };
+const hex = s => [1,3,5].map(i => parseInt(s.slice(i,i+2),16));
+const ratio = (a,b) => { const l1=lum(hex(a)), l2=lum(hex(b)); return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05) };
+
+for (const v of variants) {
+  const node = document.getElementById('variant').content.cloneNode(true);
+  const sec = node.querySelector('.variant');
+  sec.dataset.ground = v.key;
+  document.body.appendChild(node);
+  const cs = getComputedStyle(sec);
+  const t = k => cs.getPropertyValue(k).trim();
+  const T = { ink: t('--ink'), paper: t('--paper'), light: t('--light'), olive: t('--olive'), signal: t('--signal'), deep: t('--signal-deep') };
+  sec.querySelector('.name').textContent = v.name;
+  sec.querySelector('.ink').textContent = 'ink ' + T.ink + ' · paper ' + T.paper + ' · secondary-on-ink ' + T.light;
+  sec.querySelector('.note').textContent = v.note;
+
+  // Static roster: one draw, no animation. Denser toward the right so the copy stays readable.
+  // Buffer backed at DPR (capped at 2), CSS size kept separate, context scaled — same rule as the real Roster.
+  const c = sec.querySelector('canvas'); const hero = sec.querySelector('.hero');
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const W = hero.clientWidth, H = hero.clientHeight;
+  c.width = Math.round(W * dpr); c.height = Math.round(H * dpr);
+  c.style.width = W + 'px'; c.style.height = H + 'px';
+  const ctx = c.getContext('2d'); ctx.scale(dpr, dpr); ctx.fillStyle = T.signal;
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 1800; i++) {
+    const x = W * (0.35 + 0.65 * Math.sqrt(rnd())), y = H * rnd();
+    ctx.globalAlpha = 0.35 + 0.65 * rnd();
+    ctx.beginPath(); ctx.arc(x, y, 1.6, 0, Math.PI*2); ctx.fill();
+  }
+
+  const pairs = [
+    ['Body text on ink',        T.paper,  T.ink,   4.5],
+    ['Live figures on ink',     T.signal, T.ink,   3.0, 'large text'],
+    ['Secondary text on ink',   T.light,  T.ink,   4.5],
+    ['Rules on ink (UI)',       T.light,  T.ink,   3.0],
+    ['Button text on signal',   T.ink,    T.signal,4.5],
+    ['Body text on paper',      T.ink,    T.paper, 4.5],
+    ['Secondary text on paper', T.olive,  T.paper, 4.5],
+    ['Rules on paper (UI)',     T.olive,  T.paper, 3.0],
+    ['Active row / link on paper', T.deep, T.paper, 4.5],
+    ['Marks on paper (decor)',  T.signal, T.paper, 0],
+  ];
+  const tb = sec.querySelector('tbody');
+  for (const [name, fg, bg, need, note] of pairs) {
+    const r = ratio(fg, bg); const ok = need === 0 ? null : r >= need;
+    tb.insertAdjacentHTML('beforeend', `<tr><td>${name}</td><td class="sw"><span style="background:${fg}"></span>${fg}</td><td class="sw"><span style="background:${bg}"></span>${bg}</td><td>${r.toFixed(2)}</td><td>${need ? need + ':1' + (note ? ' ('+note+')' : '') : 'no requirement'}</td><td class="${ok===null?'':ok?'pass':'fail'}">${ok===null?'—':ok?'pass':'FAIL'}</td></tr>`);
+  }
+}
+</script>
+</body>
+</html>
