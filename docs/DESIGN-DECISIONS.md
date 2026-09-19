@@ -152,3 +152,28 @@ Lighthouse headless Chrome instances leak under the server helper on Windows; 37
 ### First-load JS, `/`
 
 151.4 KB gzip = floor 141.7 + **9.7 KB own code** (budget 60). Lazy after idle: GSAP core + SplitText ~27 KB, DrawSVG + ScrollTrigger ~19 KB, Roster ~17 KB, Lenis ~11 KB. `motion` is not imported anywhere.
+
+## 2026-09-19 — LCP: the bounded investigation, and the working number
+
+Three checks, all clean:
+
+1. **The h1 is in the initial HTML** at byte 8.9 KB of the response, with no client-component boundary (`<template>`/`<!--$?-->`) ahead of it.
+2. **Archivo Expanded 700 is `font-display: swap`** in the generated `@font-face` (all four faces are swap). Nothing blocks on a font.
+3. **Render-blocking ahead of first paint:** one stylesheet, 28.8 KB raw / ~7 KB gzip. Preloads: the two font files and the header logo (now `sizes="120px"`).
+
+Two further findings from an elimination test (`scripts/fcp-elimination.py`, unthrottled, `--headless=new`):
+
+- **My earlier "observed" paint timings were unreliable.** Legacy headless at DPR 2.6 reported first paint at 408–1,160 ms; under `--headless=new` at DPR 1 the same page paints at 130–190 ms. The Lighthouse figures (which use new headless) were never affected; the Playwright timelines were.
+- **The idle-mounted chunks were landing ahead of the first paint** — `requestIdleCallback` fires before the first frame when the main thread is quiet — costing ~60 ms of FCP ("lazy chunks blocked" 124 ms vs "nothing blocked" 188 ms). Fixed with `useAfterFirstPaint()`: two animation frames, then idle. After: 168 ms both ways. The ~50 ms left to "all chunks blocked" is hydration itself.
+
+Final numbers after the fix:
+
+| Measurement | FCP | LCP | Notes |
+|---|---|---|---|
+| Chromium, applied 150 ms RTT / 1.6 Mbps / 4× CPU | 1.18 s | **1.18 s** | one LCP candidate, the h1, at first paint |
+| Lighthouse mobile, default simulated, 3 runs | 0.9 s | 2.8–3.0 s | perf 93–95, TBT 110–180 ms; observed FCP = observed LCP in every run |
+| Lighthouse desktop | 0.2 s | 0.6 s | perf 100 |
+
+Why the simulated figure stays high: Lighthouse's Lantern model takes the unthrottled trace, finds every request that finished before the observed LCP paint, and treats them as its dependencies. On localhost all 142 KB of framework JS finishes in ~50 ms — long before any paint at ~250 ms — so the model bills the framework bootup to LCP at 4G speed even though the browser never waited on it. It is a property of measuring a fast origin, not of the page.
+
+**Working number, accepted 2026-09-19: LCP 1.18 s under applied 4G throttling in Chromium.** The simulated-preset figure is recorded, not targeted. Header, Proof, Services and Testimonials stay client components; the interaction model is worth more than the hydration shave.

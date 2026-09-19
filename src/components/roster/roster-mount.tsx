@@ -1,25 +1,16 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useAfterFirstPaint } from "@/lib/after-first-paint";
 
 /**
- * The Roster ships as its own chunk and mounts after the browser is idle post-hydration, so it is never part of
- * first-load JS, never reaches routes that don't render this component, and never competes with the LCP paint.
- * `ssr: false` because it is canvas-only.
+ * The Roster ships as its own chunk and mounts after the first frame has painted and the browser is idle, so it
+ * is never part of first-load JS, never reaches routes that don't render this component, and never competes
+ * with the first paint. `ssr: false` because it is canvas-only.
  */
 const Roster = dynamic(() => import("./roster").then((m) => m.Roster), { ssr: false });
 
 export function RosterMount() {
-  const [go, setGo] = useState(false);
-  useEffect(() => {
-    const start = () => setGo(true);
-    if (typeof window.requestIdleCallback === "function") {
-      const h = window.requestIdleCallback(start, { timeout: 2000 });
-      return () => window.cancelIdleCallback(h);
-    }
-    const t = setTimeout(start, 300);
-    return () => clearTimeout(t);
-  }, []);
+  const go = useAfterFirstPaint();
   return go ? <Roster /> : null;
 }
