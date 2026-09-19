@@ -260,3 +260,11 @@ Rewritten: both variables read the same way at one point (trimmed, quotes stripp
 - **Insights** exists (so `/Blog` redirects somewhere real), is `noindex`, out of the nav, and says plainly that nothing is published.
 - **Cookie consent**: nothing on the site sets a non-essential cookie or loads analytics, so no banner is shown; the cookies policy describes categories that are not currently in use. If analytics is added, a consent gate must precede it (brief §10) — noted in HANDOFF.
 - Scroll regression test now covers `/about-us`; 75 checks pass. First-load JS: about 144.6 (own 2.9), work/contact/certifications/privacy 142.7 (own 1.0), careers 174.2 (own 32.5, the form), become-a-client 176.5 (own 34.8), home 154.1 (own 12.4).
+
+## 2026-09-19 — Placeholders restored, narrowly
+
+The rule that survived: a frame whose caption names TDL's address or a named person never takes a placeholder; anything else may, with a caption that is true without claiming to depict TDL. Where a photograph warms a page: home Work section (three text rows with the Roster quiet), `/about-us` beside the Coker Road frame (one good image beside an empty one reads as deliberate; two beside an empty one reads as padding), and the `/careers` header (a job-seeker page, warmth matters most, no caption needed). `/work` stays text-only: its strength is its structure.
+
+Ten candidates were sourced; one survived. A Zaria greenhouse and a Jimeta construction site were dropped because they move the brand down-market for an FMCG or consumer-electronics buyer. The warmest office image (two women reviewing documents) was dropped after inspection at full size: a legible customer file with a name and an ID photo on the desk, a bank's product banner, uniform logos — and every crop that kept the hands kept the file. The Ninthgrid pairs all carry Apple logos or faces to camera. What remains is Taiye Salawu's woman at a desk reviewing charts, back to camera, no branding, natural light — used three times with different crops (`placeholderPosition`), which is honest because nobody sees two of them at once.
+
+Verified with builds: flag on → `/` 1 filled + 1 empty + 3 monograms, `/about-us` 1 filled + 1 empty + 5 monograms, `/careers` 1 filled; flag off → 0 filled everywhere, every frame "Photograph to come" / "Portrait to come".

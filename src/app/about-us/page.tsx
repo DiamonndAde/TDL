@@ -125,9 +125,24 @@ export default function AboutPage() {
       </section>
 
       <Register id="office" title="The office" note={`${company.address.street}, ${company.address.locality}, ${company.address.region}`}>
+        {/* Left: the office itself, captioned with the address, never placeholdered. Right: one frame of office
+            work with a caption that claims nothing about TDL; placeholdered for presentations. */}
         <div className="grid gap-6 md:grid-cols-2">
-          <PhotoFrame alt="The Total Data Limited office at 69 Coker Road, Ilupeju, exterior — photograph to come" aspect="aspect-[3/2]" note="Photograph to come: the office from Coker Road." todo="Q18" />
-          <PhotoFrame alt="Inside the Total Data Limited office, staff at work — photograph to come" aspect="aspect-[3/2]" note="Photograph to come: real staff at work, with their consent." todo="Q18" />
+          <figure>
+            <PhotoFrame alt="The Total Data Limited office at 69 Coker Road, Ilupeju — photograph to come" aspect="aspect-[3/2]" note="Photograph to come: the office from Coker Road." todo="Q18" />
+            <figcaption className="data mt-2 text-olive">{company.address.street}, {company.address.locality}. Photograph to come.</figcaption>
+          </figure>
+          <figure>
+            <PhotoFrame
+              alt="Office work — photograph to come"
+              aspect="aspect-[3/2]"
+              note="Photograph to come: real staff at work, with their consent."
+              todo="Q18"
+              placeholder="desk-work"
+              placeholderPosition="50% 35%"
+            />
+            <figcaption className="data mt-2 text-olive">At work. Office work like the work TDL runs; not TDL&rsquo;s own staff.</figcaption>
+          </figure>
         </div>
         <p className="data mt-4 text-olive">
           Quality policy and objectives, and the ISO 9001:2015 certification, are on the{" "}

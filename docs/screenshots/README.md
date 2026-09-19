@@ -59,3 +59,11 @@ Regenerate: `bash scripts/serve-and-run.sh python scripts/form-proof.py <outdir>
 |---|---|
 | `m7-about.png` | `/about-us` opening: the Roster settled as the mark beside the story |
 | `m7-pages-sheet.png` | about, work, careers, contact, certifications, privacy at 1280, and about at 390 |
+
+## Presentation placeholders (flag on)
+
+| File | What |
+|---|---|
+| `placeholders-home-work.png` | Home, Work section frame filled with the labelled, credited placeholder |
+| `placeholders-about-office.png` | `/about-us`: empty Coker Road frame beside the filled "At work" frame |
+| `placeholders-careers.png` | `/careers` header, no caption |

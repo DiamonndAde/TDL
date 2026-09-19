@@ -10,7 +10,9 @@
 
 ## Running a client presentation with placeholder imagery (Windows PowerShell)
 
-What the flag does today: the three testimonial portrait frames show initials monograms instead of "Portrait to come". No photograph is placeholdered anywhere (see `PLACEHOLDERS.md` for why). The office frame on the home page stays empty in every mode.
+What the flag does: three frames fill with one licensed, credited photograph (home Work section, `/about-us` "At work", `/careers` header) and every named-person frame shows an initials monogram. Two things never fill: the frame captioned 69 Coker Road and any portrait of a named person. `PLACEHOLDERS.md` has the per-route table and what was rejected and why.
+
+**Given `.env.local` already contains `PLACEHOLDER_IMAGES=true`:** `npm run dev` shows the placeholders with nothing else set (dev is never a production target); the presentation build needs only the marker — `$env:PLACEHOLDER_PRESENTATION_BUILD = "1"` then `npm run build` and `npm start`.
 
 The presentation mode is off unless `PLACEHOLDER_IMAGES` is `true`. The build refuses that flag for production unless the build is explicitly marked as a presentation build. Set the variables in the shell for the session — nothing persists, nothing can leak into a deploy. The testimonial portrait frames stay empty regardless (`PLACEHOLDERS.md`).
 

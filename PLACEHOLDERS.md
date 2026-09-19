@@ -1,6 +1,6 @@
 # Placeholder imagery — presentations only
 
-The site's photo frames are reserved for TDL's own photography (`docs/CLIENT-QUESTIONS.md` Q18, Q26, Q27) and stay visibly empty until it arrives. For client presentations, `PLACEHOLDER_IMAGES=true` currently fills only the named-person frames, with initials monograms. Any future photographic placeholder must be registered below with attribution and renders with a visible **"Placeholder — TDL photography required"** label and a photo credit.
+The site's photo frames are reserved for TDL's own photography (`docs/CLIENT-QUESTIONS.md` Q18, Q26, Q27) and stay visibly empty until it arrives. For client presentations, `PLACEHOLDER_IMAGES=true` fills the frames listed below with licensed stock (label and credit on every one) and the named-person frames with initials monograms.
 
 ## It cannot ship by accident
 
@@ -13,13 +13,30 @@ The site's photo frames are reserved for TDL's own photography (`docs/CLIENT-QUE
 
 The three testimonial portrait frames (Chidi Okonkwo, Mr. Michael Kehinde, Dorothy Akpati) and, on `/about-us`, the leadership and board frames never show a stock or generated face: a face under a real named person manufactures a likeness. With the flag on they show an **initials monogram** (CO, MK, DA) in Archivo Expanded, `--signal` on `--ink`, sized to the frame (`src/components/ui/monogram.tsx`). Flag off, they read "Portrait to come". The real-headshot ask stays open in `docs/CLIENT-QUESTIONS.md` Q26 / Q18.
 
-## Registry (`src/content/placeholders.ts`) — empty by decision
+## Registry (`src/content/placeholders.ts`)
 
-No photographic placeholders are registered. Three candidates for the home "office" frame were sourced and rejected (2026-09-19): an Abuja office block (wrong city, cars in shot), a Lagos railway-station entrance, and the Bank of Industry headquarters — every one would have sat under the caption "Total Data Limited, 69 Coker Road, Ilupeju, Lagos" and asserted something false. The same holds for the `/about-us` frames, captioned as TDL's own staff and office. Free Nigerian office interiors without people do not exist on Pexels or Unsplash; posed groups were rejected earlier for reading as other people's staff.
+One photograph, used in three frames with different crops. Pexels licence (free to use; attribution given anyway). File in `public/placeholders/`, 1,600 px wide.
 
-The empty frame, reading "Photograph to come", is the honest presentation state and the better prompt to the client (Q18, Q26, Q27). `PlaceholderKey` is `never`, so a frame cannot be given a placeholder until an entry is added here deliberately, with photographer, source and licence.
+| Key | Frames | Scene | Photographer | Source |
+|---|---|---|---|---|
+| `desk-work` | Home → Work section (3:2); `/about-us` → "At work" beside the empty Coker Road frame (3:2); `/careers` → header, no caption (3:2) | A woman standing at a desk reviewing charts on a laptop, Abuja office, natural light, back to camera, no visible branding | [Taiye Salawu](https://www.pexels.com/@taiyesalawu/) | [pexels.com/photo/36482981](https://www.pexels.com/photo/professional-woman-analyzing-data-on-laptop-36482981/) |
 
-With the flag on, the only visible effect is the initials monograms in the named-person frames.
+### What each route shows with the flag on
+
+| Route | Fills | Stays empty |
+|---|---|---|
+| `/` | Work-section frame (`desk-work`); three testimonial portraits → monograms CO, MK, DA | "The office" frame captioned 69 Coker Road |
+| `/about-us` | "At work" frame (`desk-work`); two leadership and three board portraits → monograms | "The office" frame captioned 69 Coker Road |
+| `/careers` | Header frame (`desk-work`), no caption | — |
+| `/work`, `/services/*`, `/contact-us`, `/certifications`, legal, `/insights` | nothing (no frames) | — |
+
+### Sourced and rejected (2026-09-19)
+
+- For the Coker Road frame: an Abuja office block, a Lagos railway-station entrance, the Bank of Industry HQ — each would have sat under the caption naming TDL's address. That frame stays empty in every mode.
+- A Zaria greenhouse and a Jimeta construction site: real, mid-work, but they say TDL staffs farms and building sites, and the buyer is a country manager at an FMCG or consumer-electronics company. Down-market for the brand.
+- "Two women reviewing documents" (Emmanuel Pius, 37568245): the warmest office image found, but at full size the desk holds a legible customer file with a name and an ID photo, plus a bank's product banner and uniform logos. Every crop that keeps the hands keeps the file. A firm that sells data-protection advice cannot show someone's file, placeholder or not.
+- Every Ninthgrid group shot: Apple logos front and centre, or smiling at the camera.
+- Free Nigerian factory, logistics or warehouse floors with people mid-work do not exist on Pexels or Unsplash; every "nigeria factory" result was another country.
 
 ## Running a presentation build
 

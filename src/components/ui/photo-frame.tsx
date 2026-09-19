@@ -5,8 +5,7 @@ import { placeholders, placeholdersEnabled, type Placeholder, type PlaceholderKe
  * A reserved space for a real photograph (AGENTS.md, Imagery). Three states:
  *  - `src` given: the real image.
  *  - no `src`, PLACEHOLDER_IMAGES=true and a `placeholder` key: licensed stock with a visible
- *    "Placeholder — TDL photography required" label. The registry is currently empty by decision, so this
- *    branch cannot be reached (see src/content/placeholders.ts).
+ *    "Placeholder — TDL photography required" label and a credit (registry: src/content/placeholders.ts).
  *  - otherwise: the empty frame, bordered, with the note of what belongs here.
  */
 export function PhotoFrame({
@@ -16,6 +15,7 @@ export function PhotoFrame({
   note,
   todo,
   placeholder,
+  placeholderPosition = "50% 50%",
   className = "",
 }: {
   src?: { src: string; width: number; height: number };
@@ -26,6 +26,8 @@ export function PhotoFrame({
   /** CLIENT-QUESTIONS.md row. */
   todo: string;
   placeholder?: PlaceholderKey;
+  /** CSS object-position for the placeholder crop, e.g. "50% 30%". */
+  placeholderPosition?: string;
   className?: string;
 }) {
   if (src) {
@@ -40,7 +42,15 @@ export function PhotoFrame({
   if (stock) {
     return (
       <div className={`relative ${aspect} w-full overflow-hidden border border-olive ${className}`} data-placeholder={placeholder}>
-        <Image src={stock.file} alt={`Placeholder: ${stock.scene}`} width={stock.width} height={stock.height} className="h-full w-full object-cover" sizes="(min-width: 80rem) 60rem, 100vw" />
+        <Image
+          src={stock.file}
+          alt={`Placeholder: ${stock.scene}`}
+          width={stock.width}
+          height={stock.height}
+          className="h-full w-full object-cover"
+          style={{ objectPosition: placeholderPosition }}
+          sizes="(min-width: 80rem) 40rem, 100vw"
+        />
         <p className="data absolute left-3 top-3 bg-ink px-2.5 py-1.5 text-paper">Placeholder — TDL photography required</p>
         <p className="data absolute bottom-3 right-3 bg-paper/90 px-2 py-1 text-olive">
           Photo: {stock.photographer}, Pexels
