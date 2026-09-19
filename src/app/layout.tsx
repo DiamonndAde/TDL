@@ -47,8 +47,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${archivo.variable} ${archivoExpanded.variable} h-full`}>
-      <body className="flex min-h-full flex-col">
+    // No `h-full` on <html>: Lenis measures the document with a ResizeObserver on documentElement, and a
+    // viewport-pinned html box never reports growth, which trapped scrolling after client-side navigation.
+    <html lang="en" className={`${archivo.variable} ${archivoExpanded.variable}`}>
+      <body className="flex min-h-dvh flex-col">
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-paper focus:px-4 focus:py-2 focus:text-ink"

@@ -229,3 +229,11 @@ Pre-selection from the query string; step 1 refuses without a headcount and name
 - **Index** leads with the brief's own line, "Pick the problem, not the org chart", the lanes, and the seven as rows naming what each removes and its lines of work. A middle-dot-joined list slipped in and was replaced with commas (banned tell).
 - **JSON-LD**: the index emits all seven `Service` nodes; each page emits its own.
 - **First-load JS**: `/services` and each service page carry 2.8–2.9 KB of own code; the Roster (~17 KB) loads after first paint. `/` 153.6 (own 11.9), `/become-a-client` 176.1 (own 34.4).
+
+## 2026-09-19 — Scroll trap after client-side navigation (fixed, regression-tested)
+
+Reported: scrolling down stopped at the coverage map after coming back from another page; scrolling up worked. Reproduced in Playwright with real wheel events: arriving at `/` from `/services`, scrolling stopped at **1231 px — exactly `/services`' maximum scroll**; from `/become-a-client`, at 801, that page's maximum. Fresh loads and the home → services → home direction never trapped, which is why it looked intermittent.
+
+Cause: Lenis recomputes its scroll limit only when its ResizeObserver on `document.documentElement` fires, and `create-next-app`'s `<html class="h-full">` pinned the html box to the viewport height, so the box never reported growth. After a client-side navigation to a longer page the limit stayed at the shorter page's value and every wheel scroll was clamped to it. Native scrolling (End key, scrollbar) bypassed Lenis, then resynced — hence upward free. Not a pin, not a snap, nothing in the Roster or ScrollTrigger.
+
+Fix: `h-full` removed from `<html>` (body is `min-h-dvh`), and `SmoothScroll` calls `lenis.resize()` on every pathname change, once immediately and once 600 ms later. Regression test `scripts/scroll-proof.py` (`npm run test:scroll`): three Roster routes × slow and fling wheel × 1280 and 390 px × Lenis on and off, plus both navigation directions and the End key; asserts the footer is reached. 60 checks, all passing; the four short → long cases failed before the fix and pass after.

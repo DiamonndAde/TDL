@@ -9,7 +9,9 @@
     "lint": "eslint",
     "analyze": "cross-env ANALYZE=true next build",
     "typecheck": "tsc --noEmit",
-    "first-load": "node scripts/first-load.mjs"
+    "first-load": "node scripts/first-load.mjs",
+    "test:scroll": "bash scripts/serve-and-run.sh python scripts/scroll-proof.py",
+    "test:form": "bash scripts/serve-and-run.sh python scripts/form-proof.py docs/screenshots"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
