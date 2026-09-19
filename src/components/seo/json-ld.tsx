@@ -5,7 +5,14 @@ import { services } from "@/content/services";
  * Organization + LocalBusiness for the site, and one Service per service line. Rendered as a plain script tag
  * with `<` escaped, per the Next 16 docs; `next/script` is for executable code.
  */
-export function JsonLd({ include = ["organization", "localBusiness"] as ("organization" | "localBusiness" | "services")[] }) {
+export function JsonLd({
+  include = ["organization", "localBusiness"] as ("organization" | "localBusiness" | "services")[],
+  only,
+}: {
+  include?: ("organization" | "localBusiness" | "services")[];
+  /** With "services": emit only this slug. */
+  only?: string;
+}) {
   const org = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -38,7 +45,7 @@ export function JsonLd({ include = ["organization", "localBusiness"] as ("organi
     address: org.address,
     parentOrganization: { "@id": org["@id"] },
   };
-  const svc = services.map((s) => ({
+  const svc = services.filter((s) => !only || s.slug === only).map((s) => ({
     "@context": "https://schema.org",
     "@type": "Service",
     name: s.name,

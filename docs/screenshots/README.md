@@ -45,3 +45,10 @@ Regenerate: `bash scripts/serve-and-run.sh python scripts/home-shots.py <outdir>
 | `m5-form-sheet.png` | Step 1 with a pre-selected service, step 3 with validation errors, the success state; and the same at 390 wide |
 
 Regenerate: `bash scripts/serve-and-run.sh python scripts/form-proof.py <outdir>` (add `390 844 2` for phone).
+
+## Milestone 6 — services
+
+| File | What |
+|---|---|
+| `m6-services-sheet.png` | `/services` index at 1280 and `/services/payroll-management` at 390 |
+| `m6-service-payroll.png` | `/services/payroll-management` at 1280, the lane lifted |
