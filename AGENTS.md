@@ -106,9 +106,14 @@ A single `position: fixed` canvas behind the page holds one array of marks, one 
 
 Where photography goes, and only there:
 - **Testimonials**: the three executives are the proof. Real headshots at 80–100 px (Q26), never treated like logos. Frames are reserved and empty until the headshots arrive.
-- **Home, near the close**: one real photograph of TDL's own team or the Ilupeju office (Q27). Reserved at 16:9, shows "Photograph to come" until then.
+- **Home, near the close**: one real photograph of TDL's own team or the Ilupeju office (Q27). Reserved as a compact bordered note ("Photograph to come", the address, the format) until then — never an empty box at the photograph's size, which reads as broken.
 - **`/about-us`** is the human page: leadership, board, the office, real staff (Q18). Plan the layout around real photography and reserve the spaces.
 - **The hero stays abstract.** No photography above the fold.
+
+**Placeholders — presentations only, three absolute rules.** `PLACEHOLDER_IMAGES=true` may fill a reserved frame with *licensed* stock, labelled "Placeholder — TDL photography required" and credited (`PLACEHOLDERS.md`); the build guard in `next.config.ts` keeps it off production. Regardless of any flag:
+1. **Never generated imagery, anywhere, for any frame** — not as a placeholder, not as a graphic, not "just for the meeting".
+2. **Never a stock or generated face in a frame that carries a named individual** — testimonial executives, leadership, board. A face under a real name manufactures a likeness. Named-person frames take an initials monogram or stay reserved.
+3. **Never a photograph in a frame whose caption asserts TDL's own address or premises** — the 69 Coker Road frames on the home page and `/about-us`. Any photograph there that is not TDL's asserts something false. They stay reserved until TDL's own shot arrives.
 
 **Illustration and graphics — allowed where they earn their place.** Diagrams, the coverage map, the lifecycle graphic, data figures, icons. Built, not generated: SVG authored in code, using the palette tokens and Archivo. Same system as the Roster, so they read as part of the site rather than dropped into it. No generated PNGs.
 
