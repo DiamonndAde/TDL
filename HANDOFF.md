@@ -2,8 +2,9 @@
 
 ## Before launch — do these first
 
-1. **Remove `PLACEHOLDER_IMAGES` and `PLACEHOLDER_PRESENTATION_BUILD` from the Vercel Production environment, then redeploy.** With both set, a Production deployment builds *with* presentation placeholders (initials monograms in the testimonial frames, and any stock that is ever registered). The build log prints a boxed warning every time this happens; it is a warning, not a stop. Check the Vercel dashboard → Settings → Environment Variables → Production, and confirm the live build log has no `PLACEHOLDER IMAGERY IS ON` block.
+1. **Remove `PLACEHOLDER_IMAGES`, `PLACEHOLDER_PRESENTATION_BUILD` and `PRESENTATION_HIDE_EMPTY_FRAMES` from the Vercel Production environment, then redeploy.** With both set, a Production deployment builds *with* presentation placeholders (initials monograms in the testimonial frames, and any stock that is ever registered). The build log prints a boxed warning every time this happens; it is a warning, not a stop. Check the Vercel dashboard → Settings → Environment Variables → Production, and confirm the live build log has no `PLACEHOLDER IMAGERY IS ON` block.
 2. Confirm `FORM_WEBHOOK_URL` is set in Production and a test submission arrives where TDL expects it (Q20).
+   Set `ZOHO_RECRUIT_CLIENT_ID`, `ZOHO_RECRUIT_CLIENT_SECRET` and `ZOHO_RECRUIT_REFRESH_TOKEN` (Q29) and send one talent-pool submission from `/careers`: it must appear in Zoho Recruit → Candidates with a note titled "Talent pool submission from totaldatalimited.com". Until those three are set, talent-pool submissions go to the webhook instead — an inbox recruiters do not read, so somebody must own it.
 3. Resolve every open row in `docs/CLIENT-QUESTIONS.md` marked blocking: logo lockup set (Q16), client logos in SVG/high-res (Q17), reference and quote sign-off (Q21–Q24), legal review (Q25). `grep -rn "TODO(client)" src/` must return only rows the client has explicitly accepted as-is.
 4. Replace the empty photo frames with TDL's own photography (Q18, Q26, Q27) or accept them empty for launch — never stock.
 5. If analytics or any non-essential cookie is added, put a consent gate in front of it before it fires (brief §10). Today nothing on the site sets one, so there is no banner.
@@ -11,6 +12,8 @@
 ## Running a client presentation with placeholder imagery (Windows PowerShell)
 
 What the flag does: three frames fill with one licensed, credited photograph (home Work section, `/about-us` "At work", `/careers` header) and every named-person frame shows an initials monogram. Two things never fill: the frame captioned 69 Coker Road and any portrait of a named person. `PLACEHOLDERS.md` has the per-route table and what was rejected and why.
+
+**Hiding the reserved frames.** Every frame still waiting for TDL's photography is a compact bordered note ("Photograph to come", the place, the format). To show a page as it will read once the photographs exist, add `PRESENTATION_HIDE_EMPTY_FRAMES=true` alongside the flag: the notes and their empty portrait frames are left out, sections that held nothing else go with them, and placeholders and monograms still show. Set it in the shell like the others; it prints a warning on a production build and is on the launch checklist.
 
 **Given `.env.local` already contains `PLACEHOLDER_IMAGES=true`:** `npm run dev` shows the placeholders with nothing else set (dev is never a production target); the presentation build needs only the marker — `$env:PLACEHOLDER_PRESENTATION_BUILD = "1"` then `npm run build` and `npm start`.
 
@@ -65,7 +68,7 @@ There is no CMS and no database. Every number, claim, service, testimonial and l
 
 Not a gap — a phase-two conversation. Today a schema plus a client bundle would buy nothing: nine pages of copy that changes a few times a year, and a form that already delivers. The trigger would be content that changes on a schedule someone other than a developer keeps:
 
-- **Careers listings are the first real case — and TDL already runs an ATS.** The current site links openings to Zoho Recruit (`totaldatalimited.zohorecruit.com/jobs/Careers`), so `/careers` links there and never duplicates listings. If a listing feed on this site is ever wanted, it is a build-time fetch from Zoho Recruit's API, not a CMS. The talent-pool form posts to the same webhook as the enquiry form with `source: careers`, so it can be routed into Zoho Recruit or an inbox without code.
+- **Careers listings are the first real case — and TDL already runs an ATS.** The current site links openings to Zoho Recruit (`totaldatalimited.zohorecruit.com/jobs/Careers`), so `/careers` links there and never duplicates listings. Rendering openings on `/careers` in the site's own design is a build-time fetch of `GET /recruit/v2/JobOpenings` (the API is on every Zoho plan, including Free) with the apply step handed to Zoho — not a CMS; what it needs from TDL is in `docs/CLIENT-QUESTIONS.md` Q29 and the reasoning in `docs/DESIGN-DECISIONS.md` (2026-09-19). The talent-pool form already delivers into Zoho as a Candidate record plus a note (`src/lib/zoho-recruit.ts`) once the three `ZOHO_RECRUIT_*` variables are set, falling back to the webhook until then.
 - **Insights, if they commit to publishing.** Same test: a real cadence, a named owner. MDX in the repo is enough for a post a month; a CMS is for a team.
 - **Case studies with client sign-off** stay in `src/content/` — they change rarely and every word needs approval anyway.
 

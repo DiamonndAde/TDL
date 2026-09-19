@@ -1,18 +1,30 @@
 import Image from "next/image";
-import { placeholders, placeholdersEnabled, type Placeholder, type PlaceholderKey } from "@/content/placeholders";
+import { emptyFramesHidden, placeholders, placeholdersEnabled, type Placeholder, type PlaceholderKey } from "@/content/placeholders";
 
 /**
  * A reserved space for a real photograph (AGENTS.md, Imagery). Three states:
- *  - `src` given: the real image.
+ *  - `src` given: the real image at its aspect.
  *  - no `src`, PLACEHOLDER_IMAGES=true and a `placeholder` key: licensed stock with a visible
  *    "Placeholder — TDL photography required" label and a credit (registry: src/content/placeholders.ts).
- *  - otherwise: the empty frame, bordered, with the note of what belongs here.
+ *  - otherwise: the reservation — a compact bordered note, not an empty box at the photograph's aspect. A large
+ *    empty 16:9 reads as a broken image; a short bordered note reads as a deliberate gap. It names what belongs
+ *    here and, where the frame is captioned with a place, the place (2026-09-19). `aspect` still applies once
+ *    the image arrives, so the layout changes then by design.
+ *  PRESENTATION_HIDE_EMPTY_FRAMES=true removes the reservation entirely. Use `frameShown()` where a wrapper
+ *  (a figure, a grid column, a whole section) should go with it.
  */
+export function frameShown({ src, placeholder }: { src?: unknown; placeholder?: PlaceholderKey }) {
+  if (src) return true;
+  if (placeholdersEnabled && placeholder && placeholder in placeholders) return true;
+  return !emptyFramesHidden;
+}
+
 export function PhotoFrame({
   src,
   alt,
   aspect = "aspect-video",
   note,
+  detail,
   todo,
   placeholder,
   placeholderPosition = "50% 50%",
@@ -21,8 +33,10 @@ export function PhotoFrame({
   src?: { src: string; width: number; height: number };
   alt: string;
   aspect?: string;
-  /** What belongs here, shown in the empty state. */
+  /** What belongs here, shown in the reservation, e.g. "Photograph to come: the office from Coker Road." */
   note: string;
+  /** Second line of the reservation: the place, or the format the photograph needs. */
+  detail?: string;
   /** CLIENT-QUESTIONS.md row. */
   todo: string;
   placeholder?: PlaceholderKey;
@@ -58,14 +72,11 @@ export function PhotoFrame({
       </div>
     );
   }
+  if (emptyFramesHidden) return null;
   return (
-    <div
-      className={`flex ${aspect} w-full items-center justify-center border border-olive ${className}`}
-      data-todo={todo}
-      role="img"
-      aria-label={alt}
-    >
-      <span className="data max-w-[36ch] px-4 text-center text-olive">{note}</span>
+    <div className={`h-full w-full border border-olive px-5 py-8 md:px-6 md:py-10 ${className}`} data-todo={todo}>
+      <p className="data text-ink">{note}</p>
+      {detail ? <p className="data mt-1.5 text-olive">{detail}</p> : null}
     </div>
   );
 }

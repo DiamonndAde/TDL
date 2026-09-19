@@ -7,7 +7,8 @@ The site's photo frames are reserved for TDL's own photography (`docs/CLIENT-QUE
 - Default is off. `PLACEHOLDER_IMAGES` is unset or `false` in every environment unless someone sets it for a demo.
 - `next.config.ts` applies one rule everywhere — locally, on a Vercel preview, on a Vercel production deployment: with `PLACEHOLDER_IMAGES` on, a **production target** (`NODE_ENV=production` and `VERCEL_ENV` not `preview`) builds only if `PLACEHOLDER_PRESENTATION_BUILD` is also set; otherwise the build **fails** and the error prints every value it saw (`PLACEHOLDER_IMAGES`, `PLACEHOLDER_PRESENTATION_BUILD`, `NODE_ENV`, `VERCEL_ENV`, `VERCEL`). A Vercel **preview** needs only `PLACEHOLDER_IMAGES` — previews run with `NODE_ENV=production`, and `VERCEL_ENV=preview` is what tells them apart from the live deployment. Both variables are read the same way (trimmed, quotes stripped, case-insensitive; `true`/`1`/`yes`/`on`).
 - When a production target does build with both set, the build log carries `[placeholder guard] Presentation build … Remove … before launch`. **Before launch, remove both variables from the Vercel Production environment.** That is a checklist item, not a guard.
-- Flag off, the frames return to the empty reserved state. Nothing else changes.
+- Flag off, the frames return to the reserved state: a compact bordered note ("Photograph to come", the place, the format), not an empty box at the photograph's size. Nothing else changes.
+- `PRESENTATION_HIDE_EMPTY_FRAMES=true` (any environment) leaves the reserved notes and the empty portrait frames out altogether, along with sections that held nothing else, so a page can be shown as it will read once the photography exists. Placeholders and monograms are unaffected. It hides rather than shows, so a production build only warns; remove it before launch with the other two (HANDOFF.md).
 
 ## Never a face
 

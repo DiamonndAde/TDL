@@ -37,3 +37,12 @@ export type PlaceholderKey = keyof typeof placeholders;
 
 /** Read at build/prerender time in server components. Off by default. */
 export const placeholdersEnabled = process.env.PLACEHOLDER_IMAGES === "true";
+
+/**
+ * PRESENTATION_HIDE_EMPTY_FRAMES=true: every reserved frame that would render its "to come" note renders
+ * nothing instead, so a client meeting can show each page as it will read once their photography arrives.
+ * Frames that hold a real image, a registered placeholder or a monogram are unaffected. Off by default; it
+ * hides rather than shows, so it needs no build guard, but it is a presentation setting: set it in the shell
+ * or `.env.local`, never in Vercel (HANDOFF.md, launch checklist).
+ */
+export const emptyFramesHidden = process.env.PRESENTATION_HIDE_EMPTY_FRAMES === "true";

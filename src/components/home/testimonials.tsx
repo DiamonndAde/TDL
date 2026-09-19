@@ -12,8 +12,11 @@ import { testimonials } from "@/content/testimonials";
  * tabs (automatic activation); "Read the full quote" expands the whole testimonial. Quotes are verbatim,
  * including the original typos, until Q22 permits corrections.
  */
-/** `monograms` is the placeholder flag, passed from the server page; it fills empty portrait frames with initials. */
-export function Testimonials({ monograms = false }: { monograms?: boolean }) {
+/**
+ * `monograms` is the placeholder flag, passed from the server page; it fills empty portrait frames with initials.
+ * `hideEmpty` is PRESENTATION_HIDE_EMPTY_FRAMES: an empty portrait frame is left out rather than reserved.
+ */
+export function Testimonials({ monograms = false, hideEmpty = false }: { monograms?: boolean; hideEmpty?: boolean }) {
   const [index, setIndex] = useState(0);
   const [full, setFull] = useState(false);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -87,18 +90,20 @@ export function Testimonials({ monograms = false }: { monograms?: boolean }) {
               >
                 {/* Portrait: a real headshot of the executive, 88 px, reserved until Q26. With placeholders on it
                     shows an initials monogram — never a face, stock or generated, under a real name. */}
-                <span
-                  className={`flex h-[88px] w-[88px] shrink-0 items-center justify-center border border-olive ${selected ? "" : "opacity-70"}`}
-                  data-todo="Q26"
-                >
-                  {item.portrait ? (
-                    <Image src={item.portrait.src} alt={`${item.person}, ${item.role}, ${item.company}`} width={item.portrait.width} height={item.portrait.height} className="h-full w-full object-cover" />
-                  ) : monograms ? (
-                    <Monogram name={item.person} size={86} />
-                  ) : (
-                    <span className="data px-2 text-center text-olive">Portrait to come</span>
-                  )}
-                </span>
+                {item.portrait || monograms || !hideEmpty ? (
+                  <span
+                    className={`flex h-[88px] w-[88px] shrink-0 items-center justify-center border border-olive ${selected ? "" : "opacity-70"}`}
+                    data-todo="Q26"
+                  >
+                    {item.portrait ? (
+                      <Image src={item.portrait.src} alt={`${item.person}, ${item.role}, ${item.company}`} width={item.portrait.width} height={item.portrait.height} className="h-full w-full object-cover" />
+                    ) : monograms ? (
+                      <Monogram name={item.person} size={86} />
+                    ) : (
+                      <span className="data px-2 text-center text-olive">Portrait to come</span>
+                    )}
+                  </span>
+                ) : null}
                 <span className="min-w-0">
                   <span className="block text-[15px] font-medium">{item.person}</span>
                   <span className="data block">{item.role}</span>

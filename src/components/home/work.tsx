@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Register } from "@/components/layout/register";
-import { PhotoFrame } from "@/components/ui/photo-frame";
+import { PhotoFrame, frameShown } from "@/components/ui/photo-frame";
+import { placeholdersEnabled } from "@/content/placeholders";
 import { caseStudies } from "@/content/testimonials";
 
 /**
@@ -17,17 +18,22 @@ export function Work() {
         </h3>
         {/* One photograph: office work like the work these accounts describe. Placeholdered for presentations;
             the caption is true without claiming to show TDL (Q27 covers the real shot). */}
-        <figure className="max-w-[28rem] lg:justify-self-end">
-          <PhotoFrame
-            alt="Office work like the work these accounts describe — photograph to come"
-            aspect="aspect-[3/2]"
-            note="Photograph to come: people at the kind of work these accounts describe."
-            todo="Q27"
-            placeholder="desk-work"
-            placeholderPosition="50% 28%"
-          />
-          <figcaption className="data mt-2 text-olive">Office work like the work these accounts describe. Not TDL&rsquo;s staff; TDL&rsquo;s own photography to come.</figcaption>
-        </figure>
+        {frameShown({ placeholder: "desk-work" }) ? (
+          <figure className="max-w-[28rem] lg:justify-self-end">
+            <PhotoFrame
+              alt="Office work like the work these accounts describe — photograph to come"
+              aspect="aspect-[3/2]"
+              note="Photograph to come: people at the kind of work these accounts describe."
+              detail="3:2, at least 2,000 px on the long side."
+              todo="Q27"
+              placeholder="desk-work"
+              placeholderPosition="50% 28%"
+            />
+            {placeholdersEnabled ? (
+              <figcaption className="data mt-2 text-olive">Office work like the work these accounts describe. Not TDL&rsquo;s staff; TDL&rsquo;s own photography to come.</figcaption>
+            ) : null}
+          </figure>
+        ) : null}
       </div>
       <ol className="mt-8 border-t border-olive">
         {caseStudies.map((c) => (

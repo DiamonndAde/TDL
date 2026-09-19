@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/layout/container";
 import { Register } from "@/components/layout/register";
 import { ApplicationForm } from "@/components/careers/application-form";
-import { PhotoFrame } from "@/components/ui/photo-frame";
+import { PhotoFrame, frameShown } from "@/components/ui/photo-frame";
 import { careers } from "@/content/about";
 
 export const metadata: Metadata = {
@@ -19,10 +19,12 @@ export const metadata: Metadata = {
  * whose role is not listed. Diversity and perks text is the current site's own.
  */
 export default function CareersPage() {
+  const showPhoto = frameShown({ placeholder: "desk-work" });
+  const columns = showPhoto ? "lg:grid-cols-[12.5rem_minmax(0,1fr)_minmax(0,24rem)]" : "lg:grid-cols-[12.5rem_minmax(0,1fr)]";
   return (
     <main id="main" className="bg-paper">
       <section aria-labelledby="careers-title">
-        <Container className="py-14 md:py-20 lg:grid lg:grid-cols-[12.5rem_minmax(0,1fr)_minmax(0,24rem)] lg:gap-10">
+        <Container className={`py-14 md:py-20 lg:grid ${columns} lg:gap-10`}>
           <div className="mb-6 lg:mb-0">
             <p className="text-[15px] font-medium">Careers</p>
             <p className="data mt-1.5 max-w-[12rem] text-olive">For people looking for work. Clients: see Become a client.</p>
@@ -45,16 +47,19 @@ export default function CareersPage() {
             </div>
           </div>
           {/* No caption: a careers page image needs no claim about whose staff these are. */}
-          <div className="mt-10 lg:mt-0">
-            <PhotoFrame
-              alt="Someone at work at a desk — photograph to come"
-              aspect="aspect-[3/2]"
-              note="Photograph to come: people at work."
-              todo="Q18"
-              placeholder="desk-work"
-              placeholderPosition="50% 45%"
-            />
-          </div>
+          {showPhoto ? (
+            <div className="mt-10 lg:mt-0">
+              <PhotoFrame
+                alt="Someone at work at a desk — photograph to come"
+                aspect="aspect-[3/2]"
+                note="Photograph to come: people at work."
+                detail="3:2, at least 2,000 px on the long side."
+                todo="Q18"
+                placeholder="desk-work"
+                placeholderPosition="50% 45%"
+              />
+            </div>
+          ) : null}
         </Container>
       </section>
 

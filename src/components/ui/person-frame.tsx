@@ -1,13 +1,16 @@
 import Image from "next/image";
-import { placeholdersEnabled } from "@/content/placeholders";
+import { emptyFramesHidden, placeholdersEnabled } from "@/content/placeholders";
 import type { Person } from "@/content/about";
 import { Monogram } from "./monogram";
 
 /**
  * A named person's portrait frame at 4:5. Real headshot when supplied (Q18); otherwise an initials monogram when
  * the presentation flag is on, or "Portrait to come". Never a stock or generated face — a face under a real name
- * manufactures a likeness.
+ * manufactures a likeness. Behind PRESENTATION_HIDE_EMPTY_FRAMES the "to come" state renders nothing; callers
+ * check `personFrameShown()` to drop the column with it.
  */
+export const personFrameShown = (person: Person) => !!person.portrait || placeholdersEnabled || !emptyFramesHidden;
+
 export function PersonFrame({ person, width = 200 }: { person: Person; width?: number }) {
   const height = Math.round(width * 1.25);
   if (person.portrait) {
@@ -30,6 +33,7 @@ export function PersonFrame({ person, width = 200 }: { person: Person; width?: n
       </div>
     );
   }
+  if (emptyFramesHidden) return null;
   return (
     <div
       style={{ width, height }}

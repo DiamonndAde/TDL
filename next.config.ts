@@ -22,6 +22,7 @@ const isOn = (value: string) => ["true", "1", "yes", "on"].includes(value.toLowe
     NODE_ENV: readEnv("NODE_ENV"),
     VERCEL_ENV: readEnv("VERCEL_ENV"),
     VERCEL: readEnv("VERCEL"),
+    PRESENTATION_HIDE_EMPTY_FRAMES: readEnv("PRESENTATION_HIDE_EMPTY_FRAMES"),
   };
   const placeholders = isOn(seen.PLACEHOLDER_IMAGES);
   const presentation = isOn(seen.PLACEHOLDER_PRESENTATION_BUILD);
@@ -35,6 +36,13 @@ const isOn = (value: string) => ["true", "1", "yes", "on"].includes(value.toLowe
         "Placeholder stock must not ship. Either unset PLACEHOLDER_IMAGES, or set PLACEHOLDER_PRESENTATION_BUILD=1 " +
         "for a deliberate client presentation build (remove both before launch). " +
         `Values seen: ${report}`,
+    );
+  }
+  if (isOn(seen.PRESENTATION_HIDE_EMPTY_FRAMES) && productionTarget) {
+    // Hides the "to come" reservations. Nothing false ships, so this is a warning, not a stop — but a launch
+    // build with it set drops the honest prompts for Q18/Q26/Q27 (HANDOFF.md, launch checklist).
+    console.warn(
+      "\nPRESENTATION_HIDE_EMPTY_FRAMES is on for a production target: reserved photo frames are left out. Remove it before launch.\n",
     );
   }
   if (placeholders && productionTarget && presentation) {

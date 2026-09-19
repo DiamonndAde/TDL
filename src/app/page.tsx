@@ -11,7 +11,7 @@ import { Testimonials } from "@/components/home/testimonials";
 import { Work } from "@/components/home/work";
 import { JsonLd } from "@/components/seo/json-ld";
 import { company } from "@/content/facts";
-import { placeholdersEnabled } from "@/content/placeholders";
+import { emptyFramesHidden, placeholdersEnabled } from "@/content/placeholders";
 
 export const metadata: Metadata = {
   title: "Total Data Limited — HR and business process outsourcing across Nigeria and Benin Republic",
@@ -33,7 +33,7 @@ export default function Home() {
       <Services />
       <Lifecycle />
       <Work />
-      <Testimonials monograms={placeholdersEnabled} />
+      <Testimonials monograms={placeholdersEnabled} hideEmpty={emptyFramesHidden} />
       <Clients />
       <Office />
       <Close />
