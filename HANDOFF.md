@@ -30,7 +30,7 @@ Remove-Item Env:PLACEHOLDER_PRESENTATION_BUILD
 npm run build
 ```
 
-If `npm run build` prints `PLACEHOLDER_IMAGES=true in a production build` and stops, that is the guard working: the flag is set without the presentation marker. Do not set `PLACEHOLDER_IMAGES` in `.env` or `.env.production`; `.env.local` is acceptable for `npm run dev` only (it is git-ignored), but the shell variable is safer because it dies with the window.
+If `npm run build` or `npm start` prints `PLACEHOLDER_IMAGES=true in a production build` and stops, that is the guard working: the flag is set without the presentation marker. **Note that `.env.local` is read by `next build` and `next start` too**, so if `PLACEHOLDER_IMAGES=true` lives there, every production build and start needs `$env:PLACEHOLDER_PRESENTATION_BUILD = "1"` as well, and a normal build needs the line removed. The shell variable is the safer habit: it dies with the window and cannot follow the repo anywhere.
 
 ## Verification scripts
 

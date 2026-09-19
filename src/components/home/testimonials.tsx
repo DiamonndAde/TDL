@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useId, useRef, useState } from "react";
 import { Register } from "@/components/layout/register";
+import { Monogram } from "@/components/ui/monogram";
 import { testimonials } from "@/content/testimonials";
 
 /**
@@ -11,7 +12,8 @@ import { testimonials } from "@/content/testimonials";
  * tabs (automatic activation); "Read the full quote" expands the whole testimonial. Quotes are verbatim,
  * including the original typos, until Q22 permits corrections.
  */
-export function Testimonials() {
+/** `monograms` is the placeholder flag, passed from the server page; it fills empty portrait frames with initials. */
+export function Testimonials({ monograms = false }: { monograms?: boolean }) {
   const [index, setIndex] = useState(0);
   const [full, setFull] = useState(false);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -83,13 +85,16 @@ export function Testimonials() {
                   selected ? "text-ink" : "text-olive hover:text-ink"
                 }`}
               >
-                {/* Portrait: a real headshot of the executive, 88 px. Reserved until Q26 — never filled with a stand-in. */}
+                {/* Portrait: a real headshot of the executive, 88 px, reserved until Q26. With placeholders on it
+                    shows an initials monogram — never a face, stock or generated, under a real name. */}
                 <span
                   className={`flex h-[88px] w-[88px] shrink-0 items-center justify-center border border-olive ${selected ? "" : "opacity-70"}`}
                   data-todo="Q26"
                 >
                   {item.portrait ? (
                     <Image src={item.portrait.src} alt={`${item.person}, ${item.role}, ${item.company}`} width={item.portrait.width} height={item.portrait.height} className="h-full w-full object-cover" />
+                  ) : monograms ? (
+                    <Monogram name={item.person} size={86} />
                   ) : (
                     <span className="data px-2 text-center text-olive">Portrait to come</span>
                   )}

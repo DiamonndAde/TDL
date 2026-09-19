@@ -8,9 +8,9 @@ The site's photo frames are reserved for TDL's own photography (`docs/CLIENT-QUE
 - `next.config.ts` **throws** if `PLACEHOLDER_IMAGES=true` on a production target: a Vercel production deployment, or any local `next build` not explicitly marked with `PLACEHOLDER_PRESENTATION_BUILD=1`. Preview deployments are allowed.
 - Flag off, the frames return to the empty reserved state. Nothing else changes.
 
-## Never placeholdered
+## Never a face
 
-The three testimonial portrait frames (Chidi Okonkwo, Mr. Michael Kehinde, Dorothy Akpati) and, on `/about-us`, the leadership and board frames. A stock face under a real named person invents a person. These frames do not take a placeholder key in code (`src/components/ui/photo-frame.tsx` — `placeholder` is simply never passed), so the flag cannot reach them.
+The three testimonial portrait frames (Chidi Okonkwo, Mr. Michael Kehinde, Dorothy Akpati) and, on `/about-us`, the leadership and board frames never show a stock or generated face: a face under a real named person manufactures a likeness. With the flag on they show an **initials monogram** (CO, MK, DA) in Archivo Expanded, `--signal` on `--ink`, sized to the frame (`src/components/ui/monogram.tsx`). Flag off, they read "Portrait to come". The real-headshot ask stays open in `docs/CLIENT-QUESTIONS.md` Q26 / Q18.
 
 ## Registry (`src/content/placeholders.ts`)
 
