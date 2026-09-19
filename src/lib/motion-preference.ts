@@ -12,6 +12,8 @@ import { useSyncExternalStore } from "react";
 export interface MotionPreference {
   reduced: boolean;
   saveData: boolean;
+  /** False for the server snapshot and during hydration; effects that must not run twice wait for it. */
+  ready: boolean;
 }
 
 const QUERY = "(prefers-reduced-motion: reduce)";
@@ -27,6 +29,7 @@ function read(): MotionPreference {
   return {
     reduced: window.matchMedia(QUERY).matches,
     saveData: nav.connection?.saveData === true,
+    ready: true,
   };
 }
 
@@ -38,7 +41,7 @@ function snapshot(): MotionPreference {
   last = next;
   return next;
 }
-const SERVER: MotionPreference = { reduced: true, saveData: true };
+const SERVER: MotionPreference = { reduced: true, saveData: true, ready: false };
 const serverSnapshot = () => SERVER;
 
 export function useMotionPreference(): MotionPreference {

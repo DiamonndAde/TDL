@@ -15,6 +15,7 @@ export function Logo({ className = "" }: { className?: string }) {
           alt=""
           width={885}
           height={268}
+          sizes="120px"
           priority
           className="absolute left-0 top-0 h-9 w-auto max-w-none"
         />

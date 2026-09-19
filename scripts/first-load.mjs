@@ -14,7 +14,10 @@ import { gzipSync } from "node:zlib";
 import { createServer } from "node:net";
 
 const routes = process.argv.slice(2).length ? process.argv.slice(2) : ["/"];
-const BUDGET_KB = 200;
+// Budget (AGENTS.md): the framework floor plus 60 KB of our own code. Floor measured 2026-09-18 with an empty page.
+const FLOOR_KB = 141.7;
+const OWN_BUDGET_KB = 60;
+const BUDGET_KB = FLOOR_KB + OWN_BUDGET_KB;
 
 const port = await new Promise((res) => {
   const s = createServer();
@@ -74,9 +77,12 @@ for (const route of routes) {
   rows.sort((a, b) => b[1] - a[1]);
   const kb = gz / 1024;
   worst = Math.max(worst, kb);
-  console.log(`\n${route}  â€”  ${urls.size} scripts, ${(raw / 1024).toFixed(1)} KB raw, ${kb.toFixed(1)} KB gzip  ${kb > BUDGET_KB ? "OVER BUDGET" : "ok"}`);
+  const own = Math.max(0, kb - FLOOR_KB);
+  console.log(`
+${route}  -  ${urls.size} scripts, ${(raw / 1024).toFixed(1)} KB raw, ${kb.toFixed(1)} KB gzip = floor ${FLOOR_KB} + own ${own.toFixed(1)} KB  ${own > OWN_BUDGET_KB ? "OVER BUDGET" : "ok"}`);
   for (const [name, g] of rows) console.log(`   ${(g / 1024).toFixed(1).padStart(7)} KB  ${name}`);
 }
-console.log(`\nBudget ${BUDGET_KB} KB gzip. Worst route: ${worst.toFixed(1)} KB.`);
+console.log(`
+Budget: floor ${FLOOR_KB} KB + ${OWN_BUDGET_KB} KB own code = ${BUDGET_KB.toFixed(1)} KB gzip. Worst route: ${worst.toFixed(1)} KB.`);
 server.kill();
 process.exit(worst > BUDGET_KB ? 1 : 0);

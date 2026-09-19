@@ -100,6 +100,20 @@ A single `position: fixed` canvas behind the page holds one array of marks, one 
 
 **SEO** — preserve or 308 every existing URL; they have years of indexing on `/services/...`. Unique title and meta per page. JSON-LD for Organization, LocalBusiness and each Service.
 
+## Imagery
+
+**Photography — never generated, never generic stock.** Real people, real places, real logos only. No synthetic staff, offices or clients: this firm sells workforce integrity and a fake person on the page is a credibility risk, not a design choice. Where a real photo doesn't exist, reserve the space at correct dimensions, tag `TODO(client)`, and add the specific shot to `docs/CLIENT-QUESTIONS.md`. Don't fill the hole.
+
+**Illustration and graphics — allowed where they earn their place.** Diagrams, the coverage map, the lifecycle graphic, data figures, icons. Built, not generated: SVG authored in code, using the palette tokens and Archivo. Same system as the Roster, so they read as part of the site rather than dropped into it. No generated PNGs.
+
+Constraints:
+- Palette tokens only. No gradient washes, no colour outside the system.
+- Flat, real geometry. No soft shadows, no glow, no floating isometric objects, no rounded blobby figures.
+- Every graphic encodes information. If it would still make sense with the labels removed and the content swapped, it's decoration — cut it.
+- The Roster is the visual language. A new graphic should look like it could be another state of the same system.
+
+Before building any graphic, state the concept in one line and what information it carries (in `docs/DESIGN-DECISIONS.md`). If the honest answer is "it fills the space," don't build it.
+
 ## Copy
 
 Plain verbs, sentence case, active voice. A CTA says what happens: `Become a client`, not `Submit`. Every service headline names what it removes from the buyer's plate. Cut the existing marketing abstraction. No meta strings joined with middle dots.

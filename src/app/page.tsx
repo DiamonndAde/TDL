@@ -1,29 +1,39 @@
-import { Button } from "@/components/ui/button";
-import { Container } from "@/components/layout/container";
-import { Register } from "@/components/layout/register";
-import { headline } from "@/content/facts";
+import type { Metadata } from "next";
+import { Clients } from "@/components/home/clients";
+import { Close } from "@/components/home/close";
+import { Coverage } from "@/components/home/coverage";
+import { Hero } from "@/components/home/hero";
+import { Lifecycle } from "@/components/home/lifecycle";
+import { Proof } from "@/components/home/proof";
+import { Services } from "@/components/home/services";
+import { Testimonials } from "@/components/home/testimonials";
+import { Work } from "@/components/home/work";
+import { JsonLd } from "@/components/seo/json-ld";
+import { company } from "@/content/facts";
 
-// Milestone 2 placeholder — replaced by the nine home sections at milestone 4.
+export const metadata: Metadata = {
+  title: "Total Data Limited — HR and business process outsourcing across Nigeria and Benin Republic",
+  description: `${company.description} ISO 9001:2015 certified, Lagos.`,
+  alternates: { canonical: "/" },
+};
+
+/**
+ * Home, nine sections in the brief's order. Ink brackets paper: hero and proof on ink, six reading sections on
+ * paper, the close on ink. The Roster runs behind the whole length; each section owns the slot it draws into.
+ */
 export default function Home() {
   return (
-    <main id="main">
-      <section className="on-ink bg-ink text-paper">
-        <Container className="py-24">
-          <h1 className="display max-w-[14ch] text-[2.75rem] md:text-[3.5rem] lg:text-[4.25rem]">
-            {headline.default}
-          </h1>
-          <p className="mt-6 max-w-[34em] text-[1.125rem] md:text-[1.1875rem]">{headline.sub}</p>
-          <div className="mt-9 flex items-center gap-6">
-            <Button href="/become-a-client">Become a client</Button>
-            <Button variant="link" href="/services">
-              See the services
-            </Button>
-          </div>
-        </Container>
-      </section>
-      <Register id="foundation" title="Foundation" note="Layout primitive check">
-        <p>The register primitive: caption column left, content right, stacked on phones.</p>
-      </Register>
+    <main id="main" className="relative">
+      <JsonLd />
+      <Hero />
+      <Proof />
+      <Coverage />
+      <Services />
+      <Lifecycle />
+      <Work />
+      <Testimonials />
+      <Clients />
+      <Close />
     </main>
   );
 }

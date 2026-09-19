@@ -7,13 +7,14 @@ import { emitRoster } from "./events";
 import { layoutFor, type Layout, type Rect } from "./layouts";
 import { useRoster } from "./roster-context";
 import { rosterStates, type RosterState } from "./states";
+import { attachViewport } from "./viewport";
 
 /**
  * The Roster. One fixed canvas behind the page, one array of marks (one per managed employee) that
  * reconfigures on scroll between the slots the page lays out, and never re-enters.
  *
  * Positions are a pure function of scroll: for the transition between slot k and k+1, progress runs from
- * 0 to 1 as slot k+1 travels from 90% to 35% of the viewport height. Each mark starts its move at its own
+ * 0 to 1 as slot k+1 travels from 85% to 50% of the viewport height. Each mark starts its move at its own
  * stagger offset so a reconfiguration reads as a population relocating, not a morph. A short follow lerp
  * smooths wheel steps. Nothing is tweened through intermediate states: a scroll fling above the velocity
  * threshold reads Lenis's *target* scroll instead of the animated one, so the marks head straight for the
@@ -32,10 +33,8 @@ const FLOOR = 800;
 
 const TONE_ALPHA = { ink: 0.92, paper: 0.55 };
 
-function chooseCount() {
-  const w = window.innerWidth;
+function chooseCount(w: number, dpr: number) {
   const cores = navigator.hardwareConcurrency || 4;
-  const dpr = window.devicePixelRatio || 1;
   let n = w < 640 ? 1100 : w < 1024 ? 2600 : 5000;
   if (cores <= 4) n *= 0.7;
   if (dpr > 2) n *= 0.85;
@@ -81,9 +80,11 @@ export function Roster() {
       signalDeep: css.getPropertyValue("--signal-deep").trim() || "#1c7580",
     };
 
-    let n = chooseCount();
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
-    let radius = window.innerWidth < 640 ? 1.35 : 1.6;
+    // All viewport reads and canvas sizing go through viewport.ts (see the open risk in DESIGN-DECISIONS.md).
+    const viewport = attachViewport(canvas, ctx, () => scheduleMeasure());
+    let vp = viewport.apply();
+    let n = chooseCount(vp.width, vp.dpr);
+    let radius = vp.width < 640 ? 1.35 : 1.6;
     const palette = [colors.signal, colors.inkLight, colors.signalDeep];
     // bucket index = colour * ALPHA_STEPS + alphaStep; each bucket holds mark indices for this frame
     const buckets: number[][] = Array.from({ length: palette.length * ALPHA_STEPS }, () => []);
@@ -99,45 +100,65 @@ export function Roster() {
       .filter((s): s is Slot => s !== null);
     if (slots.length === 0) return;
 
-    let layouts: Layout[] = [];
+    // Layouts are computed on demand and cached; only the first is needed for the first frame. The rest are
+    // filled in during idle time so hydration-adjacent main-thread work stays short (this was measurable in
+    // Lighthouse as LCP render delay on simulated 4G).
+    let layouts: (Layout | null)[] = slots.map(() => null);
     let cur = new Float32Array(n * 2);
     let stagger = new Float32Array(n);
     let initialised = false;
+    let idleHandle = 0;
+    const hasIdle = typeof window.requestIdleCallback === "function";
+    const idle = (fn: () => void): number => (hasIdle ? window.requestIdleCallback(fn, { timeout: 1500 }) : window.setTimeout(fn, 50));
+    const cancelIdle = (h: number) => (hasIdle ? window.cancelIdleCallback(h) : window.clearTimeout(h));
+
+    function getLayout(k: number): Layout {
+      let l = layouts[k];
+      if (!l) {
+        l = layoutFor(slots[k].state, n, slots[k].rect);
+        layouts[k] = l;
+      }
+      return l;
+    }
+    function warmLayouts() {
+      const next = layouts.findIndex((l) => l === null);
+      if (next === -1) return;
+      idleHandle = idle(() => {
+        getLayout(next);
+        warmLayouts();
+      });
+    }
 
     function measure() {
-      const sy = window.scrollY;
+      const sy = viewport.scrollY();
       for (const s of slots) {
         const r = s.el.getBoundingClientRect();
         s.rect = { x: r.left, y: r.top + sy, w: r.width, h: r.height };
       }
-      layouts = slots.map((s) => layoutFor(s.state, n, s.rect));
+      layouts = slots.map(() => null);
+      if (idleHandle) cancelIdle(idleHandle);
       if (!initialised) {
-        cur = new Float32Array(layouts[0].pos);
+        cur = new Float32Array(getLayout(0).pos);
         stagger = new Float32Array(n);
         for (let i = 0; i < n; i++) stagger[i] = ((i * 7919) % 1000) / 1000; // deterministic spread
         initialised = true;
       }
+      warmLayouts();
     }
 
     function resizeCanvas() {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const w = window.innerWidth, h = window.innerHeight;
-      canvas!.style.width = `${w}px`;
-      canvas!.style.height = `${h}px`;
-      canvas!.width = Math.round(w * dpr);
-      canvas!.height = Math.round(h * dpr);
-      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-      radius = w < 640 ? 1.35 : 1.6;
+      vp = viewport.apply();
+      radius = vp.width < 640 ? 1.35 : 1.6;
     }
 
     // --- scroll → state ---------------------------------------------------------------------------
     function stateAt(scroll: number) {
-      const vh = window.innerHeight;
+      const vh = vp.height;
       let a = 0, p = 0;
       for (let k = 1; k < slots.length; k++) {
         const top = slots[k].rect.y;
-        const start = top - vh * 0.9;
-        const end = top - vh * 0.35;
+        const start = top - vh * 0.85;
+        const end = top - vh * 0.5;
         if (scroll >= end) { a = k; p = 0; continue; }
         if (scroll > start) { a = k - 1; p = (scroll - start) / (end - start); }
         break;
@@ -152,7 +173,7 @@ export function Roster() {
     let continuous = !reduced;
     let mode: "continuous" | "static" = continuous ? "continuous" : "static";
     let last = performance.now();
-    let prevScroll = window.scrollY;
+    let prevScroll = viewport.scrollY();
     let velocity = 0;
     let strikes = 0;
     let degradations = 0;
@@ -160,6 +181,12 @@ export function Roster() {
     let lastState: RosterState | null = null;
     let pathPhase = 0;
     let fpsAcc = 0, fpsN = 0, fps = 0;
+    // First-view arrival: if the second slot is already in the viewport when the Roster starts (tall screens),
+    // the drift → grid transition runs once on a timer instead of waiting for a scroll that never comes.
+    // The proof-bar counters read this, so "count up on first view only" holds on every screen size.
+    let intro = 0;
+    let introStart: number | null = null;
+    const INTRO_MS = 1400;
 
     function frame(now: number) {
       raf = 0;
@@ -168,17 +195,28 @@ export function Roster() {
       last = now;
 
       const lenis = getLenis();
-      const scroll = window.scrollY;
+      const scroll = viewport.scrollY();
       const inst = ((scroll - prevScroll) / dt) * 1000;
       velocity = velocity * 0.7 + inst * 0.3;
       prevScroll = scroll;
-      const vh = window.innerHeight;
+      const vh = vp.height;
       const snapped = !!lenis && Math.abs(velocity) > FLING_VH_PER_S * vh;
       const effScroll = snapped && lenis ? lenis.targetScroll : scroll;
 
-      const { a, b, p: rawP } = stateAt(effScroll);
+      const st = stateAt(effScroll);
+      const a = st.a;
+      let rawP = st.p;
+      let b = st.b;
+      if (slots.length > 1 && a === 0 && intro < 1) {
+        const r = slots[1].el.getBoundingClientRect();
+        if (introStart === null && r.top < vh) introStart = now;
+        if (introStart !== null) {
+          intro = reduced ? 1 : Math.min(1, (now - introStart) / INTRO_MS);
+          if (intro > rawP) { rawP = smooth(intro); b = 1; }
+        }
+      }
       const p = reduced ? (rawP < 0.5 ? 0 : 1) : rawP;
-      const la = layouts[a], lb = layouts[b];
+      const la = getLayout(a), lb = getLayout(b);
       const toneA = TONE_ALPHA[slots[a].tone], toneB = TONE_ALPHA[slots[b].tone];
       const stateNow = p < 0.5 ? slots[a].state : slots[b].state;
       if (stateNow !== lastState) { lastState = stateNow; setState(stateNow); }
@@ -268,7 +306,7 @@ export function Roster() {
       }
 
       // keep looping while something is time-based or still settling
-      const settling = !reduced && (p > 0 && p < 1);
+      const settling = !reduced && ((p > 0 && p < 1) || (introStart !== null && intro < 1));
       if (running && (continuous || settling)) raf = requestAnimationFrame(frame);
     }
 
@@ -290,7 +328,6 @@ export function Roster() {
     const ro = new ResizeObserver(scheduleMeasure);
     slots.forEach((s) => ro.observe(s.el));
     ro.observe(document.body);
-    window.addEventListener("resize", scheduleMeasure);
     window.addEventListener("scroll", requestFrame, { passive: true });
     const offLenis = onLenis(() => requestFrame());
 
@@ -299,7 +336,7 @@ export function Roster() {
       (entries) => {
         const anyVisible = entries.some((e) => e.isIntersecting) || slots.some((s) => {
           const r = s.el.getBoundingClientRect();
-          return r.bottom > -window.innerHeight && r.top < window.innerHeight * 2;
+          return r.bottom > -vp.height && r.top < vp.height * 2;
         });
         running = anyVisible && document.visibilityState === "visible";
         if (running) requestFrame();
@@ -315,7 +352,6 @@ export function Roster() {
     };
     document.addEventListener("visibilitychange", onVisibility);
 
-    resizeCanvas();
     measure();
     running = true;
     requestFrame();
@@ -324,10 +360,11 @@ export function Roster() {
       running = false;
       if (raf) cancelAnimationFrame(raf);
       if (measureRaf) cancelAnimationFrame(measureRaf);
+      if (idleHandle) cancelIdle(idleHandle);
       ro.disconnect();
       io.disconnect();
       offLenis();
-      window.removeEventListener("resize", scheduleMeasure);
+      viewport.detach();
       window.removeEventListener("scroll", requestFrame);
       document.removeEventListener("visibilitychange", onVisibility);
       setActive(false);

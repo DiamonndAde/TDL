@@ -107,3 +107,48 @@ Recommended composition, pending approval: **Archivo `wght` at width 100 + one s
 | Reduced motion | Mode `static`, no loop, states quantised, Lenis not mounted |
 
 **Not proven here:** real iOS Safari. Playwright's Chromium resize exercises the same code path (resize → re-buffer → re-measure), but the iOS toolbar transition, rubber-banding and `position: fixed` repaint behaviour need a device. Flagged at the milestone-3 stop.
+
+## 2026-09-19 — Open risk: iOS Safari and the fixed canvas
+
+Verified only programmatically (Playwright Chromium viewport resize mid-scroll) and in Chrome DevTools at iPhone dimensions. **Unverified on a real device:** the address-bar collapse transition, rubber-band overscroll, and `position: fixed` repaint behaviour in iOS Safari. Milestone 4 proceeds on the programmatic proof. To keep a later device fix contained, all viewport reads and canvas sizing live in `src/components/roster/viewport.ts` behind one interface; the Roster itself never touches `innerHeight`, `visualViewport` or the canvas element's size. A real-device fix is a change to that file, not to the layouts or the frame loop.
+
+## 2026-09-19 — Milestone 4, the home page
+
+### Graphics built, with the concept and the information each carries
+
+- **Coverage outline** — the two national outlines the population fills; the marks are the people, the line says which country. Carries: Nigeria and Benin Republic as distinct territories, their relative size and position. Same projection as the Roster's map layout (`mapGeometry()`), so marks and line coincide. No hotspots, no state count (Q7/Q8).
+- **Lifecycle line** — one continuous line with five numbered stops; the population streams along it. Carries: the sequence of the employment lifecycle and what TDL runs at each stage. The only place numbering is used, because the content is sequential. Server-rendered in a 1000×300 box and re-fitted to the slot on the client (Catmull-Rom is affine-invariant, so the stream and the line agree at any size); DrawSVG scrubs it with scroll.
+- **Proof figures** — not a graphic, but the two counting figures are a readout of the Roster: they show the share of marks that have landed in the grid. On tall screens where the grid slot is already visible at load, the drift → grid transition runs once on a 1.4 s timer ("count up on first view only"); everywhere else it is scroll-driven.
+
+Nothing else was drawn. No icons on service rows, no decorative figures.
+
+### Judgement calls
+
+- **Header status line is the text twin on desktop; on phones each section's caption carries it** (the header has no room). Both read from `rosterStatusText`.
+- **Testimonials**: tablist of attributions as the control, one pull-quote large in the voice setting, "Read the full quote" expands the verbatim text. Scroll-snap on touch was dropped: the tablist works on touch as plain buttons and a second mechanism for the same content is noise.
+- **Client logos** are `mix-blend-multiply` so their white PNG backgrounds disappear into paper; greyscale at rest.
+- **Lifecycle headline** avoids "employer of record" — a specific legal term the client has not used — in favour of "One employer".
+- **Slot placement** keeps marks off text at rest; mid-transition crossings (e.g. the close on phones) are accepted.
+- **Services lead line** "Seven things we take off your desk." names the reframing the brief asked for.
+
+### LCP, verified with Lighthouse rather than by eye
+
+The headline is the LCP element in every run (`largest-contentful-paint-element` = `h1#hero-headline`). Findings, in order:
+
+1. **SplitText on the h1 itself cost 3.5 s of render delay** on simulated 4G: splitting the LCP element and reverting it re-inserts its text and registers a fresh LCP candidate after hydration. Fixed: the reveal animates an `aria-hidden` clone laid over the h1; the original only ever receives a `color` style. Verified: disabling the reveal entirely gives the same LCP as leaving it on.
+2. **Main-thread work after hydration** (all six layouts computed synchronously, map by rejection sampling): TBT 400 ms. Fixed: Roster mounts on `requestIdleCallback`, layouts compute on demand and warm in idle time, the map is rasterised once by scanline fill. TBT 150–300 ms.
+3. **GSAP chunks started at hydration** and competed with the fonts for bandwidth. Fixed: the reveal chunk loads on idle, the DrawSVG chunk when the lifecycle section is within 1.5 viewports. The header logo was preloaded at 1080 px for a 34 px slot; `sizes="120px"` fixed it.
+4. **Inlining the display face as a data URI was measured and rejected**: FCP +0.3 s (15 KB more render-blocking CSS), LCP unchanged. Unpreloading the body font: no change. Both reverted.
+5. **What remains is the framework floor.** Observed (unthrottled) LCP equals FCP in every run — the h1 is painted once. But that first paint lands after the async framework chunks have executed (DCL 75 ms, FCP ~370 ms), so Lighthouse's Lantern model treats the 142 KB of React/Next bootup as an LCP dependency and bills it at 4G speed. Under applied CDP throttling (150 ms RTT, 1.6 Mbps, 4× CPU) in Chromium, LCP is **1.4 s**; in Lighthouse's default simulated preset it is **2.7–3.1 s** run to run; in Lighthouse's applied mode (which uses a 562 ms RTT) FCP alone is ~3 s.
+
+**Budget status: the brief's "LCP < 2.5 s on simulated 4G" is not met in Lighthouse's default model, by 0.2–0.6 s, and the residual is React 19.2 + Next 16 hydration contending with first paint, not page code.** Levers left are structural: fewer client components on the home route (Header, Proof, Services, Testimonials are client), or a smaller framework. Flagged at the milestone-4 stop as a blown budget.
+
+Desktop: perf 100, LCP 0.6 s, CLS 0.004, TBT 0–20 ms. Accessibility 97 on both (the 3 points are the `link-in-text-block` audit on underline-only links, which meet WCAG via the underline; to revisit).
+
+### Measurement hygiene learned the hard way
+
+Lighthouse headless Chrome instances leak under the server helper on Windows; 37 of them (4.8 GB) made TBT climb 630 → 4,580 ms across three runs. `scripts/lh-mobile-x3.sh` kills Chrome between runs. Treat any Lighthouse run with TBT > 600 ms on this page as suspect until repeated.
+
+### First-load JS, `/`
+
+151.4 KB gzip = floor 141.7 + **9.7 KB own code** (budget 60). Lazy after idle: GSAP core + SplitText ~27 KB, DrawSVG + ScrollTrigger ~19 KB, Roster ~17 KB, Lenis ~11 KB. `motion` is not imported anywhere.

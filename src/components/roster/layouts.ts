@@ -84,21 +84,8 @@ type Poly = [number, number][];
 const NGA: Poly[] = (mapOutline as unknown as Record<string, Poly[]>).NGA;
 const BEN: Poly[] = (mapOutline as unknown as Record<string, Poly[]>).BEN;
 
-function pointInPoly(x: number, y: number, poly: Poly) {
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [xi, yi] = poly[i];
-    const [xj, yj] = poly[j];
-    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
-  }
-  return inside;
-}
-
-/**
- * Coverage: Nigeria and Benin Republic, even density (CLIENT-QUESTIONS.md Q8 — no hotspots until confirmed).
- * Equirectangular with a cos(lat) width correction at ~9°N; both countries fit the slot, preserving aspect.
- */
-export function mapLayout(n: number, r: Rect, seed = 2): Layout {
+/** Both country outlines in projected units (equirectangular, cos(9°N) width correction), origin top-left. */
+export function mapGeometry() {
   const polys = [...NGA, ...BEN].filter((p) => p.length > 20); // drop the islet
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const p of polys) for (const [lng, lat] of p) {
@@ -106,18 +93,76 @@ export function mapLayout(n: number, r: Rect, seed = 2): Layout {
     minY = Math.min(minY, lat); maxY = Math.max(maxY, lat);
   }
   const kx = Math.cos((9 * Math.PI) / 180);
-  const gw = (maxX - minX) * kx, gh = maxY - minY;
-  const scale = Math.min(r.w / gw, r.h / gh) * 0.96;
-  const ox = r.x + (r.w - gw * scale) / 2, oy = r.y + (r.h - gh * scale) / 2;
+  const project = ([lng, lat]: [number, number]) => [(lng - minX) * kx, maxY - lat] as [number, number];
+  return {
+    width: (maxX - minX) * kx,
+    height: maxY - minY,
+    nigeria: NGA.filter((p) => p.length > 20).map((p) => p.map(project)),
+    benin: BEN.filter((p) => p.length > 20).map((p) => p.map(project)),
+    polys,
+    bounds: { minX, minY, maxX, maxY },
+    kx,
+  };
+}
+
+/** SVG path data for a list of projected polygons. */
+export function polygonsToPath(polys: [number, number][][]) {
+  return polys
+    .map((p) => p.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(3)},${y.toFixed(3)}`).join(" ") + " Z")
+    .join(" ");
+}
+
+/**
+ * Rasterise the projected polygons once into a cell mask by even-odd scanline fill: O(rows × edges) instead of
+ * millions of point-in-polygon tests. Cached at module level; the geometry never changes.
+ */
+let maskCache: { cols: number; rows: number; cells: Uint8Array; filled: number[] } | null = null;
+function mapMask() {
+  if (maskCache) return maskCache;
+  const g = mapGeometry();
+  const cols = 220;
+  const rows = Math.max(1, Math.round((cols * g.height) / g.width));
+  const cells = new Uint8Array(cols * rows);
+  const sx = cols / g.width, sy = rows / g.height;
+  for (const poly of [...g.nigeria, ...g.benin]) {
+    const pts = poly.map(([x, y]) => [x * sx, y * sy] as [number, number]);
+    for (let r = 0; r < rows; r++) {
+      const y = r + 0.5;
+      const xs: number[] = [];
+      for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+        const [xi, yi] = pts[i], [xj, yj] = pts[j];
+        if (yi > y !== yj > y) xs.push(xi + ((y - yi) * (xj - xi)) / (yj - yi));
+      }
+      xs.sort((a, b) => a - b);
+      for (let k = 0; k + 1 < xs.length; k += 2) {
+        const c0 = Math.max(0, Math.ceil(xs[k] - 0.5)), c1 = Math.min(cols - 1, Math.floor(xs[k + 1] - 0.5));
+        for (let c = c0; c <= c1; c++) cells[r * cols + c] = 1;
+      }
+    }
+  }
+  const filled: number[] = [];
+  for (let i = 0; i < cells.length; i++) if (cells[i]) filled.push(i);
+  maskCache = { cols, rows, cells, filled };
+  return maskCache;
+}
+
+/**
+ * Coverage: Nigeria and Benin Republic, even density (CLIENT-QUESTIONS.md Q8 — no hotspots until confirmed).
+ * The geometry is fitted to the slot exactly as an SVG with `preserveAspectRatio="xMidYMid meet"` would be, so
+ * the page's outline graphic and the marks coincide.
+ */
+export function mapLayout(n: number, r: Rect, seed = 2): Layout {
+  const g = mapGeometry();
+  const m = mapMask();
+  const scale = Math.min(r.w / g.width, r.h / g.height);
+  const ox = r.x + (r.w - g.width * scale) / 2, oy = r.y + (r.h - g.height * scale) / 2;
+  const cw = (g.width * scale) / m.cols, ch = (g.height * scale) / m.rows;
   const rnd = mulberry32(seed);
   const pts = [];
-  let guard = 0;
-  while (pts.length < n && guard++ < n * 40) {
-    const lng = minX + rnd() * (maxX - minX);
-    const lat = minY + rnd() * (maxY - minY);
-    if (polys.some((p) => pointInPoly(lng, lat, p))) {
-      pts.push({ x: ox + (lng - minX) * kx * scale, y: oy + (maxY - lat) * scale, tone: 0, column: 255 });
-    }
+  for (let i = 0; i < n; i++) {
+    const idx = m.filled[Math.floor(rnd() * m.filled.length)];
+    const c = idx % m.cols, row = Math.floor(idx / m.cols);
+    pts.push({ x: ox + (c + rnd()) * cw, y: oy + (row + rnd()) * ch, tone: 0, column: 255 });
   }
   return finish(pts);
 }

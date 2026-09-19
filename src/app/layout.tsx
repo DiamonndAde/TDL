@@ -10,7 +10,9 @@ import "./globals.css";
 
 /**
  * One family. Archivo variable (wght only, width 100) for everything, plus one static Archivo Expanded 700
- * instance for display. Measured 2026-09-18: 31.8 + 14.5 KB latin. The full wdth axis would be 84.2 KB.
+ * instance for display, both self-hosted and preloaded by next/font. Measured 2026-09-18: 31.8 + 14.5 KB latin.
+ * The full wdth axis would be 84.2 KB. Inlining the display face as a data URI was tried and measured worse
+ * (FCP +0.3 s on simulated 4G, LCP unchanged) — see DESIGN-DECISIONS.md, milestone 4.
  */
 const archivo = Archivo({
   subsets: ["latin"],
@@ -27,6 +29,7 @@ const archivoExpanded = localFont({
   display: "swap",
   adjustFontFallback: "Arial",
 });
+
 
 export const metadata: Metadata = {
   metadataBase: new URL(company.siteUrl),
