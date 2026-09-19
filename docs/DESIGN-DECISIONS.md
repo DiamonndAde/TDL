@@ -215,3 +215,9 @@ Pre-selection from the query string; step 1 refuses without a headcount and name
 ### First-load JS
 
 `/` 151.9 KB (own 10.2 KB). `/become-a-client` 174.3 KB (own 32.6 KB: react-hook-form ~19, zod/mini + schema ~6, form ~8). Budget: floor + 60 KB.
+
+## 2026-09-19 — Placeholder imagery for presentations; no CMS
+
+- **`PLACEHOLDER_IMAGES`** (default off) fills the non-person photo frames with licensed Pexels stock of Lagos workplaces, each rendered with a visible "Placeholder — TDL photography required" label and a credit. `next.config.ts` throws when the flag is true on a production target (Vercel production, or any local production build not marked `PLACEHOLDER_PRESENTATION_BUILD=1`), so it cannot ship by accident — proven: the flagged production build exits 1 with the message; the presentation build renders the labelled image; the default build renders the empty frame with no placeholder markup. Registry and attribution: `PLACEHOLDERS.md`, `src/content/placeholders.ts`. Unsplash+/Getty results were excluded (paid licence).
+- **Named-person frames never take a placeholder key** — testimonial portraits now, leadership and board at milestone 7. A stock face under a real name invents a person.
+- **No CMS or database.** Content stays in `src/content/`; the site is static and the form already delivers to a webhook. `HANDOFF.md` records when it would become worth revisiting (careers listings if TDL posts regularly; check their existing ATS/CRM first) as a phase-two conversation, not a gap.
