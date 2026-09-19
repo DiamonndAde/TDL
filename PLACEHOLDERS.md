@@ -1,6 +1,6 @@
 # Placeholder imagery — presentations only
 
-The site's photo frames are reserved for TDL's own photography (`docs/CLIENT-QUESTIONS.md` Q18, Q26, Q27) and stay visibly empty until it arrives. For client presentations, `PLACEHOLDER_IMAGES=true` fills the *non-person* frames with the licensed stock below. Every placeholder renders with a visible **"Placeholder — TDL photography required"** label and a photo credit.
+The site's photo frames are reserved for TDL's own photography (`docs/CLIENT-QUESTIONS.md` Q18, Q26, Q27) and stay visibly empty until it arrives. For client presentations, `PLACEHOLDER_IMAGES=true` currently fills only the named-person frames, with initials monograms. Any future photographic placeholder must be registered below with attribution and renders with a visible **"Placeholder — TDL photography required"** label and a photo credit.
 
 ## It cannot ship by accident
 
@@ -13,17 +13,13 @@ The site's photo frames are reserved for TDL's own photography (`docs/CLIENT-QUE
 
 The three testimonial portrait frames (Chidi Okonkwo, Mr. Michael Kehinde, Dorothy Akpati) and, on `/about-us`, the leadership and board frames never show a stock or generated face: a face under a real named person manufactures a likeness. With the flag on they show an **initials monogram** (CO, MK, DA) in Archivo Expanded, `--signal` on `--ink`, sized to the frame (`src/components/ui/monogram.tsx`). Flag off, they read "Portrait to come". The real-headshot ask stays open in `docs/CLIENT-QUESTIONS.md` Q26 / Q18.
 
-## Registry (`src/content/placeholders.ts`)
+## Registry (`src/content/placeholders.ts`) — empty by decision
 
-All three are by the same Lagos photographer under the [Pexels licence](https://www.pexels.com/license/) (free to use, attribution not required, given anyway). Files in `public/placeholders/`, fetched at 1,600 px wide.
+No photographic placeholders are registered. Three candidates for the home "office" frame were sourced and rejected (2026-09-19): an Abuja office block (wrong city, cars in shot), a Lagos railway-station entrance, and the Bank of Industry headquarters — every one would have sat under the caption "Total Data Limited, 69 Coker Road, Ilupeju, Lagos" and asserted something false. The same holds for the `/about-us` frames, captioned as TDL's own staff and office. Free Nigerian office interiors without people do not exist on Pexels or Unsplash; posed groups were rejected earlier for reading as other people's staff.
 
-| Key | Where it appears | Scene | Photographer | Source |
-|---|---|---|---|---|
-| `home-office` | Home, "The office" frame before the close | Three colleagues around a laptop during a meeting in a Lagos office | [Ninthgrid](https://www.pexels.com/@ninthgrid-2149521550/) | [pexels.com/photo/30689114](https://www.pexels.com/photo/team-collaboration-meeting-in-lagos-office-30689114/) |
-| `about-staff` | `/about-us`, staff at work (milestone 7) | A group of business professionals indoors, Lagos | Ninthgrid | [pexels.com/photo/30688595](https://www.pexels.com/photo/diverse-business-team-smiling-indoors-30688595/) |
-| `about-work` | `/about-us`, the office at work (milestone 7) | Two colleagues collaborating on a laptop in a Lagos office | Ninthgrid | [pexels.com/photo/30677719](https://www.pexels.com/photo/professional-collaboration-in-lagos-office-30677719/) |
+The empty frame, reading "Photograph to come", is the honest presentation state and the better prompt to the client (Q18, Q26, Q27). `PlaceholderKey` is `never`, so a frame cannot be given a placeholder until an entry is added here deliberately, with photographer, source and licence.
 
-Not used: anything from Unsplash+ / Getty (paid), and anything that is not a Nigerian workplace.
+With the flag on, the only visible effect is the initials monograms in the named-person frames.
 
 ## Running a presentation build
 
@@ -33,6 +29,6 @@ PLACEHOLDER_IMAGES=true PLACEHOLDER_PRESENTATION_BUILD=1 npm run build && npm st
 
 or, on Vercel: set `PLACEHOLDER_IMAGES=true` on the **Preview** environment (nothing else needed), or on Production set both `PLACEHOLDER_IMAGES=true` and `PLACEHOLDER_PRESENTATION_BUILD=1` for the presentation and remove both afterwards.
 
-## Removing them for good
+## Removing the mechanism for good
 
-Delete `public/placeholders/`, `src/content/placeholders.ts`, the `placeholder` props in the frames, and this file. Nothing else references them.
+Delete `src/content/placeholders.ts`, `src/components/ui/monogram.tsx`, the `monograms` prop on `Testimonials`, the guard block in `next.config.ts`, and this file. Nothing else references them.

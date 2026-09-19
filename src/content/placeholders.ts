@@ -1,10 +1,12 @@
 /**
- * Licensed stock placeholders for client presentations ONLY. Rendered by <PhotoFrame> when PLACEHOLDER_IMAGES
- * is "true"; the build refuses that flag for a production target (next.config.ts). Every placeholder renders
- * with a visible "Placeholder — TDL photography required" label. Attribution: PLACEHOLDERS.md.
+ * Presentation-only placeholders. The registry is EMPTY by decision (docs/DESIGN-DECISIONS.md, 2026-09-19):
+ * every photo frame on the site is captioned as a real TDL person, place or address, and any stock photograph
+ * under such a caption asserts something false — the wrong city, a railway station, another institution's
+ * headquarters. The honest presentation state is the empty frame reading "Photograph to come", which is also
+ * the better prompt to the client. `PlaceholderKey` is therefore `never`: <PhotoFrame placeholder=…> will not
+ * type-check until someone adds an entry here deliberately, with attribution in PLACEHOLDERS.md.
  *
- * Never a portrait for a named person: a stock face under a real executive invents a person. The testimonial
- * portrait frames and the leadership/board frames do not take a placeholder key at all.
+ * What PLACEHOLDER_IMAGES still does: initials monograms in the named-person frames (never a face).
  */
 export interface Placeholder {
   file: string;
@@ -14,41 +16,10 @@ export interface Placeholder {
   photographer: string;
   photographerUrl: string;
   sourceUrl: string;
-  licence: "Pexels";
+  licence: "Pexels" | "Unsplash";
 }
 
-export const placeholders = {
-  "home-office": {
-    file: "/placeholders/pexels-30689114.jpg",
-    width: 1600,
-    height: 1067,
-    scene: "Three colleagues around a laptop during a meeting in a Lagos office",
-    photographer: "Ninthgrid",
-    photographerUrl: "https://www.pexels.com/@ninthgrid-2149521550/",
-    sourceUrl: "https://www.pexels.com/photo/team-collaboration-meeting-in-lagos-office-30689114/",
-    licence: "Pexels",
-  },
-  "about-staff": {
-    file: "/placeholders/pexels-30688595.jpg",
-    width: 1600,
-    height: 1067,
-    scene: "A group of business professionals indoors, Lagos",
-    photographer: "Ninthgrid",
-    photographerUrl: "https://www.pexels.com/@ninthgrid-2149521550/",
-    sourceUrl: "https://www.pexels.com/photo/diverse-business-team-smiling-indoors-30688595/",
-    licence: "Pexels",
-  },
-  "about-work": {
-    file: "/placeholders/pexels-30677719.jpg",
-    width: 1600,
-    height: 1067,
-    scene: "Two colleagues collaborating on a laptop in a Lagos office",
-    photographer: "Ninthgrid",
-    photographerUrl: "https://www.pexels.com/@ninthgrid-2149521550/",
-    sourceUrl: "https://www.pexels.com/photo/professional-collaboration-in-lagos-office-30677719/",
-    licence: "Pexels",
-  },
-} satisfies Record<string, Placeholder>;
+export const placeholders = {} satisfies Record<string, Placeholder>;
 
 export type PlaceholderKey = keyof typeof placeholders;
 

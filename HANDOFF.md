@@ -1,8 +1,17 @@
 # Handoff
 
+## Before launch — do these first
+
+1. **Remove `PLACEHOLDER_IMAGES` and `PLACEHOLDER_PRESENTATION_BUILD` from the Vercel Production environment, then redeploy.** With both set, a Production deployment builds *with* presentation placeholders (initials monograms in the testimonial frames, and any stock that is ever registered). The build log prints a boxed warning every time this happens; it is a warning, not a stop. Check the Vercel dashboard → Settings → Environment Variables → Production, and confirm the live build log has no `PLACEHOLDER IMAGERY IS ON` block.
+2. Confirm `FORM_WEBHOOK_URL` is set in Production and a test submission arrives where TDL expects it (Q20).
+3. Resolve every open row in `docs/CLIENT-QUESTIONS.md` marked blocking: logo lockup set (Q16), client logos in SVG/high-res (Q17), reference and quote sign-off (Q21–Q24), legal review (Q25). `grep -rn "TODO(client)" src/` must return only rows the client has explicitly accepted as-is.
+4. Replace the empty photo frames with TDL's own photography (Q18, Q26, Q27) or accept them empty for launch — never stock.
+
 ## Running a client presentation with placeholder imagery (Windows PowerShell)
 
-The reserved photo frames stay empty unless `PLACEHOLDER_IMAGES` is `true`. The build refuses that flag for production unless the build is explicitly marked as a presentation build. Set the variables in the shell for the session — nothing persists, nothing can leak into a deploy. The testimonial portrait frames stay empty regardless (`PLACEHOLDERS.md`).
+What the flag does today: the three testimonial portrait frames show initials monograms instead of "Portrait to come". No photograph is placeholdered anywhere (see `PLACEHOLDERS.md` for why). The office frame on the home page stays empty in every mode.
+
+The presentation mode is off unless `PLACEHOLDER_IMAGES` is `true`. The build refuses that flag for production unless the build is explicitly marked as a presentation build. Set the variables in the shell for the session — nothing persists, nothing can leak into a deploy. The testimonial portrait frames stay empty regardless (`PLACEHOLDERS.md`).
 
 **Development server** (fast, live reload):
 

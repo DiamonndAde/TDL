@@ -1,13 +1,13 @@
 import Image from "next/image";
-import { placeholders, placeholdersEnabled, type PlaceholderKey } from "@/content/placeholders";
+import { placeholders, placeholdersEnabled, type Placeholder, type PlaceholderKey } from "@/content/placeholders";
 
 /**
  * A reserved space for a real photograph (AGENTS.md, Imagery). Three states:
  *  - `src` given: the real image.
  *  - no `src`, PLACEHOLDER_IMAGES=true and a `placeholder` key: licensed stock with a visible
- *    "Placeholder — TDL photography required" label. Presentation builds only; production builds refuse the flag.
+ *    "Placeholder — TDL photography required" label. The registry is currently empty by decision, so this
+ *    branch cannot be reached (see src/content/placeholders.ts).
  *  - otherwise: the empty frame, bordered, with the note of what belongs here.
- * Frames for named people never pass a `placeholder` key.
  */
 export function PhotoFrame({
   src,
@@ -35,7 +35,8 @@ export function PhotoFrame({
       </div>
     );
   }
-  const stock = placeholdersEnabled && placeholder ? placeholders[placeholder] : null;
+  const stock: Placeholder | null =
+    placeholdersEnabled && placeholder ? (placeholders as Record<string, Placeholder>)[placeholder] ?? null : null;
   if (stock) {
     return (
       <div className={`relative ${aspect} w-full overflow-hidden border border-olive ${className}`} data-placeholder={placeholder}>

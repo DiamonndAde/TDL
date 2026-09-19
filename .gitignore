@@ -40,3 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /.probe
+
+# The example is documentation, not configuration
+!.env.example

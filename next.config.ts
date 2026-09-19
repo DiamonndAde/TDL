@@ -38,8 +38,27 @@ const isOn = (value: string) => ["true", "1", "yes", "on"].includes(value.toLowe
     );
   }
   if (placeholders && productionTarget && presentation) {
+    // Deliberate loosening (2026-09-19): the marker unlocks a production target so a presentation can run on a
+    // Production deployment. Make it impossible to scroll past.
+    const line = "═".repeat(78);
     console.warn(
-      `[placeholder guard] Presentation build: placeholder imagery is ON for a production target (VERCEL_ENV=${seen.VERCEL_ENV || "(unset)"}). Remove PLACEHOLDER_IMAGES and PLACEHOLDER_PRESENTATION_BUILD before launch.`,
+      [
+        "",
+        line,
+        "  PLACEHOLDER IMAGERY IS ON FOR A PRODUCTION TARGET",
+        "",
+        "  This build honours PLACEHOLDER_PRESENTATION_BUILD and will render presentation",
+        "  placeholders (initials monograms; any registered stock) on a production target.",
+        `  VERCEL_ENV=${seen.VERCEL_ENV || "(unset)"}  NODE_ENV=${seen.NODE_ENV || "(unset)"}  VERCEL=${seen.VERCEL || "(unset)"}`,
+        "",
+        "  THIS MUST NOT BE THE LAUNCH BUILD.",
+        "  Before going live, remove BOTH variables from the Vercel Production environment:",
+        "      PLACEHOLDER_IMAGES",
+        "      PLACEHOLDER_PRESENTATION_BUILD",
+        "  and redeploy. See HANDOFF.md, 'Before launch', item 1.",
+        line,
+        "",
+      ].join("\n"),
     );
   }
 }
