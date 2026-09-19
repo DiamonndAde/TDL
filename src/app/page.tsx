@@ -4,6 +4,7 @@ import { Close } from "@/components/home/close";
 import { Coverage } from "@/components/home/coverage";
 import { Hero } from "@/components/home/hero";
 import { Lifecycle } from "@/components/home/lifecycle";
+import { Office } from "@/components/home/office";
 import { Proof } from "@/components/home/proof";
 import { Services } from "@/components/home/services";
 import { Testimonials } from "@/components/home/testimonials";
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * Home, nine sections in the brief's order. Ink brackets paper: hero and proof on ink, six reading sections on
+ * Home, the brief's nine sections plus one reserved photograph before the close. Ink brackets paper: hero and proof on ink, six reading sections on
  * paper, the close on ink. The Roster runs behind the whole length; each section owns the slot it draws into.
  */
 export default function Home() {
@@ -33,6 +34,7 @@ export default function Home() {
       <Work />
       <Testimonials />
       <Clients />
+      <Office />
       <Close />
     </main>
   );

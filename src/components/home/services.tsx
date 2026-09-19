@@ -45,7 +45,15 @@ export function Services() {
     <Register id="services" title="Services" note={rosterStatusText.columns}>
       <h3 className="display mb-8 max-w-[22ch] text-[1.75rem] md:text-[2rem]">Seven things we take off your desk.</h3>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,34rem)_1fr] lg:gap-14">
-        <RosterSlot state="columns" tone="paper" className="order-first h-[140px] lg:order-last lg:h-auto lg:min-h-[420px]" />
+        {/* Lanes, not bars: rules span all seven so equal heights read as layout, and the caption says it. Nobody
+            has a headcount split by service line; inventing one is the thing the brief bans (Q26). */}
+        <div className="order-first lg:order-last">
+          <RosterSlot state="columns" tone="paper" className="h-[140px] lg:h-[420px]">
+            <span aria-hidden="true" className="absolute inset-x-0 top-0 border-t border-olive" />
+            <span aria-hidden="true" className="absolute inset-x-0 bottom-0 border-t border-olive" />
+          </RosterSlot>
+          <p className="data mt-2 text-olive">Lanes group people by service line. They are not headcounts.</p>
+        </div>
         <ul className="border-t border-olive" onMouseLeave={() => { setHover(null); activate(open); }}>
           {services.map((s, i) => {
             const isOpen = open === i;
@@ -71,8 +79,11 @@ export function Services() {
                   onKeyDown={(e) => onKey(e, i)}
                 >
                   <span>{s.name}</span>
-                  <span className="data shrink-0 text-olive" aria-hidden="true">
-                    {isOpen ? "Close" : "Open"}
+                  <span
+                    aria-hidden="true"
+                    className={`shrink-0 text-[1.25rem] font-light leading-none text-olive transition-transform duration-200 ${isOpen ? "rotate-45" : ""}`}
+                  >
+                    +
                   </span>
                 </button>
                 <div

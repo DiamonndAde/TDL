@@ -104,6 +104,12 @@ A single `position: fixed` canvas behind the page holds one array of marks, one 
 
 **Photography — never generated, never generic stock.** Real people, real places, real logos only. No synthetic staff, offices or clients: this firm sells workforce integrity and a fake person on the page is a credibility risk, not a design choice. Where a real photo doesn't exist, reserve the space at correct dimensions, tag `TODO(client)`, and add the specific shot to `docs/CLIENT-QUESTIONS.md`. Don't fill the hole.
 
+Where photography goes, and only there:
+- **Testimonials**: the three executives are the proof. Real headshots at 80–100 px (Q26), never treated like logos. Frames are reserved and empty until the headshots arrive.
+- **Home, near the close**: one real photograph of TDL's own team or the Ilupeju office (Q27). Reserved at 16:9, shows "Photograph to come" until then.
+- **`/about-us`** is the human page: leadership, board, the office, real staff (Q18). Plan the layout around real photography and reserve the spaces.
+- **The hero stays abstract.** No photography above the fold.
+
 **Illustration and graphics — allowed where they earn their place.** Diagrams, the coverage map, the lifecycle graphic, data figures, icons. Built, not generated: SVG authored in code, using the palette tokens and Archivo. Same system as the Roster, so they read as part of the site rather than dropped into it. No generated PNGs.
 
 Constraints:

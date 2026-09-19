@@ -4,7 +4,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { pathD, pathStops } from "@/components/roster/layouts";
+import { flowGeometry } from "@/components/roster/layouts";
 import { onLenis } from "@/lib/lenis";
 import { useMotionPreference } from "@/lib/motion-preference";
 
@@ -26,14 +26,20 @@ export function LifecycleDrawInner({ pathId }: { pathId: string }) {
       const slot = path?.closest<HTMLElement>("[data-roster-slot]");
       if (!path || !svg || !slot) return;
 
-      // Re-fit the server-rendered 1000×300 line to the slot's real size so the stroke is uniform and DrawSVG
-      // can measure it. Stops are fractional, so the marker positions don't change.
+      // Re-fit the server-rendered 1000×300 band to the slot's real size so the strokes are uniform and DrawSVG
+      // can measure them. The geometry is fractional, so nothing moves.
+      const ticks = svg.querySelector<SVGPathElement>("#lifecycle-ticks");
       const fit = () => {
         const w = slot.clientWidth, h = slot.clientHeight;
+        const g = flowGeometry({ x: 0, y: 0, w, h });
         svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
         svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
         path.removeAttribute("vector-effect");
-        path.setAttribute("d", pathD(pathStops({ x: 0, y: 0, w, h })));
+        path.setAttribute("d", g.edges);
+        if (ticks) {
+          ticks.removeAttribute("vector-effect");
+          ticks.setAttribute("d", g.ticks);
+        }
       };
       fit();
       const ro = new ResizeObserver(fit);

@@ -7,7 +7,7 @@ import { testimonials } from "@/content/testimonials";
 
 /**
  * Testimonials. The attribution list is the control: three named executives as a tablist, one quote shown large
- * in the voice setting. The proof — who said it, at which company — is the interface. Arrow keys move between
+ * in the voice setting. The proof — who said it, at which company, with their face — is the interface. Arrow keys move between
  * tabs (automatic activation); "Read the full quote" expands the whole testimonial. Quotes are verbatim,
  * including the original typos, until Q22 permits corrections.
  */
@@ -79,16 +79,28 @@ export function Testimonials() {
                 tabIndex={selected ? 0 : -1}
                 onClick={() => select(i)}
                 onKeyDown={(e) => onKey(e, i)}
-                className={`flex w-full items-center gap-4 border-b border-olive py-4 text-left transition-colors duration-150 ${
+                className={`flex w-full items-start gap-4 border-b border-olive py-4 text-left transition-colors duration-150 ${
                   selected ? "text-ink" : "text-olive hover:text-ink"
                 }`}
               >
-                <span className={`h-10 w-16 shrink-0 bg-paper ${selected ? "" : "opacity-60 grayscale"}`}>
-                  <Image src={item.logo.src} alt="" width={item.logo.width} height={item.logo.height} className="h-10 w-16 object-contain mix-blend-multiply" />
+                {/* Portrait: a real headshot of the executive, 88 px. Reserved until Q26 — never filled with a stand-in. */}
+                <span
+                  className={`flex h-[88px] w-[88px] shrink-0 items-center justify-center border border-olive ${selected ? "" : "opacity-70"}`}
+                  data-todo="Q26"
+                >
+                  {item.portrait ? (
+                    <Image src={item.portrait.src} alt={`${item.person}, ${item.role}, ${item.company}`} width={item.portrait.width} height={item.portrait.height} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="data px-2 text-center text-olive">Portrait to come</span>
+                  )}
                 </span>
                 <span className="min-w-0">
                   <span className="block text-[15px] font-medium">{item.person}</span>
-                  <span className="data block">{item.role}, {item.company}</span>
+                  <span className="data block">{item.role}</span>
+                  <span className="mt-1.5 flex items-center gap-2">
+                    <Image src={item.logo.src} alt="" width={item.logo.width} height={item.logo.height} className={`h-6 w-10 object-contain object-left mix-blend-multiply ${selected ? "" : "grayscale"}`} />
+                    <span className="data">{item.company}</span>
+                  </span>
                 </span>
               </button>
             );

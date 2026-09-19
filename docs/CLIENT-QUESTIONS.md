@@ -53,6 +53,7 @@ These came off totaldatalimited.com and can go in as real content. Still worth a
 | 13 | Do **Projects** and **Blog** actually exist? Both are dead links in the current nav | Build the routes, leave them out of the nav until there's content |
 | 14 | Careers — is there a live job feed, an ATS, or is it a general application inbox? | Single general application form |
 | 15 | Benin Republic — separate entity, office, or serviced from Lagos? | Mention coverage only, no office claim |
+| 28 | **Headcount by service line.** The services section draws seven lanes of people, one per service. Nobody has the split, so the lanes are equal and captioned "They are not headcounts". If TDL can supply even approximate shares, the lanes can carry them | Equal lanes, explicit caption. No invented split |
 
 ---
 
@@ -61,8 +62,10 @@ These came off totaldatalimited.com and can go in as real content. Still worth a
 | # | Asset | Why it blocks |
 |---|---|---|
 | 16 | **Logo lockup set in SVG** + any brand guideline + the correct brand hex values. Specifically: **(a)** a header mark for dark grounds — no tagline, legible on navy `#0F1B2D` (the current olive wordmark is 2.5:1 on navy, unreadable); **(b)** the full lockup with tagline for paper; **(c)** a single-colour version for the favicon and small sizes. Also a decision on the **lime arc `#A4CE3C` and red tagline `#EA2126`**: both are outside the site palette (see `DESIGN-DECISIONS.md`) and will appear only inside the logo asset itself — confirm that is acceptable, or supply a version without them | Everything on the current site is PNG. Sampled values from the PNG (cyan `#54C4D0`, olive `#606135`, lime `#A4CE3C`, red `#EA2126`) are close, not exact. Until the set arrives, the header uses the PNG and will look wrong on navy |
-| 17 | Client logos in SVG or high-res PNG | The current ones are small and will look soft on retina |
-| 18 | Photography — office, team, leadership headshots at higher resolution | Current leadership images are small cutouts |
+| 17 | **Client logos in SVG or high-res PNG — blocking for launch.** The current PNGs are 247×166 with inconsistent padding, weight and resolution; oraimo, Infinix and Speedaf were nearly invisible in a grid. Until real files arrive they are trimmed to their ink and drawn as ink silhouettes (`scripts/trim-logos.mjs`, `src/content/clients.ts`) | Soft on retina and the silhouette treatment hides brand colour. Launch needs the real marks |
+| 18 | Photography for `/about-us` — the human page. **Real only, never stock, never generated.** (a) Leadership headshots: TOluwalase Ayeni, Yetunde Braimoh-Habeebu; (b) board: Theo Ola Ayeni Esq, Adedamola A. Adams, Musi A. Braimoh; (c) the Ilupeju office, exterior and interior; (d) real staff at work, with consent. Landscape 3:2 for office/staff, 4:5 for headshots, ≥ 2,000 px on the long side | The current leadership images are small cutouts. The about page layout is planned around these; the spaces are reserved and stay empty until they arrive |
+| 26 | **Headshots of the three testimonial executives** — Chidi Okonkwo (Carlcare), Mr. Michael Kehinde (Chi Limited), Dorothy Akpati (Transsnet Music) — square or 4:5, ≥ 400 px. TDL to obtain with each person's permission, since they are the client's contacts | They are real executives vouching for TDL; the home page renders an 88 px portrait frame per person, reserved and empty until these arrive |
+| 27 | **One real photograph for the home page**, near the close: TDL's own team or the 69 Coker Road office. 16:9, ≥ 2,400 px wide | The space is reserved on the home page and shows "Photograph to come" until this arrives. Not filled with anything else |
 | 19 | Quality Policy + Quality Objectives PDFs, ISO certificate, any licences | For the `/certifications` page |
 | 20 | Form submissions — where do they go? Email inbox, CRM, ATS? | Determines the submit handler. Building against a simple email send until told otherwise |
 

@@ -5,7 +5,7 @@ CHROME = r"C:/Users/PC/AppData/Local/ms-playwright/chromium-1228/chrome-win64/ch
 out = sys.argv[1]
 w, h, dpr = (int(sys.argv[2]), int(sys.argv[3]), float(sys.argv[4])) if len(sys.argv) > 4 else (1280, 900, 1)
 tag = f"{w}"
-sections = ["top", "proof", "coverage", "services", "lifecycle", "work", "testimonials", "clients", "close"]
+sections = ["top", "proof", "coverage", "services", "lifecycle", "work", "testimonials", "clients", "office", "close"]
 with sync_playwright() as p:
     b = p.chromium.launch(headless=True, executable_path=CHROME)
     pg = b.new_context(viewport={"width": w, "height": h}, device_scale_factor=dpr, is_mobile=w < 640, has_touch=w < 640).new_page()

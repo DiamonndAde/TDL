@@ -48,7 +48,7 @@ export const figures = {
 /** Hero headline. Both variants are real copy; the default avoids the unconfirmed headcount. */
 export const headline = {
   // Default until Q1 is confirmed. Chosen from three tenure variants — see DESIGN-DECISIONS.md.
-  default: "Every morning since 2000, our clients' people have gone to work through us.",
+  default: "Every morning since 2000, our clients’ people have gone to work through us.",
   // TODO(client): Q1 — switch to this once the headcount is confirmed.
   withFigure: "5,000 people go to work for our clients every morning.",
   sub: "End-to-end HR and business process outsourcing across Nigeria and Benin Republic.",
@@ -90,7 +90,7 @@ export const board = [
 /** The MD's garden quote, verbatim from the current site. Brief §11: keep it, give it space. */
 export const gardenQuote = {
   text:
-    "Great talent isn't found; it's nurtured. Like a garden, it requires careful selection, patient cultivation, and the right environment to flourish. In the world of business, hiring exceptional individuals isn't a mere transaction; it's the essential groundwork for success.",
+    "Great talent isn’t found; it’s nurtured. Like a garden, it requires careful selection, patient cultivation, and the right environment to flourish. In the world of business, hiring exceptional individuals isn’t a mere transaction; it’s the essential groundwork for success.",
   by: "TOluwalase Ayeni",
   role: "Managing Director",
 } as const;

@@ -2,6 +2,7 @@
  * Verbatim from the current site, including its typos ("personned", "conisttently", "hgh").
  * TODO(client): Q22 — permission to correct typos inside attributed quotes. Until then, `corrected` is not rendered.
  * TODO(client): Q21 — permission to name these companies in case studies (a stronger claim than a testimonial).
+ * TODO(client): Q26 — real headshots of the three executives (they are the proof); until then `portrait` is undefined.
  *
  * `pull` is the sentence shown large in the testimonials section; `full` is the whole quote, shown on expand.
  */
@@ -11,6 +12,8 @@ export interface Testimonial {
   person: string;
   role: string;
   logo: { src: string; width: number; height: number; alt: string };
+  /** Real headshot, 2:2.4 or square, at least 400 px on the short side. Undefined until Q26 — the frame is reserved, not filled. */
+  portrait?: { src: string; width: number; height: number };
   pull: string;
   full: string[];
 }
@@ -79,7 +82,7 @@ export const caseStudies: CaseStudy[] = [
     company: "Carlcare Development Nigeria",
     sector: "After-sales support for TECNO, Infinix, itel and Oraimo",
     situation:
-      "Started operating in Nigeria before today's HR compliance requirements existed, and needed policies and employment records brought up to the current standard.",
+      "Started operating in Nigeria before today’s HR compliance requirements existed, and needed policies and employment records brought up to the current standard.",
     ran: "Formalised HR policies and updated employment records; ran recruitment, payroll, welfare benefits, training, HMO, pension, employee taxes and other statutory requirements. A partnership of over ten years.",
     said: "Enabled Carlcare to focus on what they do best: after-sales support and promotional services.",
   },

@@ -187,62 +187,50 @@ export function columnsLayout(n: number, r: Rect, columns = 7, gapRatio = 0.35):
   return finish(pts);
 }
 
-/** Five stops of the lifecycle path in slot space, horizontal on wide slots and vertical on tall ones. */
-export function pathStops(r: Rect): { x: number; y: number }[] {
-  const vertical = r.h > r.w;
-  const stops = [];
-  for (let i = 0; i < 5; i++) {
-    const t = 0.06 + (i / 4) * 0.88;
-    const wave = (i % 2 === 0 ? -1 : 1) * 0.22;
-    stops.push(
-      vertical
-        ? { x: r.x + r.w * (0.5 + wave), y: r.y + r.h * t }
-        : { x: r.x + r.w * t, y: r.y + r.h * (0.5 + wave) },
-    );
-  }
-  return stops;
+/**
+ * Lifecycle flow geometry. A band running left to right through five stages, narrowing to TAPER of its starting
+ * height by the exit: the population thins slightly at each stage. Straight edges and vertical stage ticks, so
+ * the same fractional geometry serves the SVG (any box) and the marks (the slot rect). Everything is in
+ * fractions of the rect; callers scale.
+ */
+export const FLOW_STAGES = 5;
+export const FLOW_TAPER = 0.55; // band height at the exit as a fraction of the height at hire
+const flowHalf = (t: number) => 0.5 * (1 - (1 - FLOW_TAPER) * t); // half-height fraction at t ∈ [0,1]
+
+export function flowGeometry(r: Rect) {
+  const cy = r.y + r.h / 2;
+  const top = (t: number) => ({ x: r.x + r.w * t, y: cy - r.h * flowHalf(t) });
+  const bottom = (t: number) => ({ x: r.x + r.w * t, y: cy + r.h * flowHalf(t) });
+  const f = (v: number) => v.toFixed(1);
+  const edges = `M${f(top(0).x)},${f(top(0).y)} L${f(top(1).x)},${f(top(1).y)} M${f(bottom(0).x)},${f(bottom(0).y)} L${f(bottom(1).x)},${f(bottom(1).y)}`;
+  const ticks = Array.from({ length: FLOW_STAGES - 1 }, (_, i) => {
+    const t = (i + 1) / FLOW_STAGES;
+    return `M${f(top(t).x)},${f(top(t).y)} L${f(bottom(t).x)},${f(bottom(t).y)}`;
+  }).join(" ");
+  const centers = Array.from({ length: FLOW_STAGES }, (_, i) => (i + 0.5) / FLOW_STAGES);
+  return { edges, ticks, centers };
 }
 
-/** Catmull-Rom point on the polyline of stops at t ∈ [0,1]. */
-export function pathPoint(stops: { x: number; y: number }[], t: number) {
-  const segs = stops.length - 1;
-  const s = Math.min(segs - 1e-6, Math.max(0, t * segs));
-  const i = Math.floor(s);
-  const u = s - i;
-  const p0 = stops[Math.max(0, i - 1)], p1 = stops[i], p2 = stops[i + 1], p3 = stops[Math.min(stops.length - 1, i + 2)];
-  const u2 = u * u, u3 = u2 * u;
-  const f = (a: number, b: number, c: number, d: number) =>
-    0.5 * (2 * b + (-a + c) * u + (2 * a - 5 * b + 4 * c - d) * u2 + (-a + 3 * b - 3 * c + d) * u3);
-  return { x: f(p0.x, p1.x, p2.x, p3.x), y: f(p0.y, p1.y, p2.y, p3.y) };
-}
-
-/** SVG `d` for the same path, so the drawn line and the stream agree exactly. */
-export function pathD(stops: { x: number; y: number }[], offsetX = 0, offsetY = 0, samples = 64) {
-  const parts = [];
-  for (let i = 0; i <= samples; i++) {
-    const p = pathPoint(stops, i / samples);
-    parts.push(`${i === 0 ? "M" : "L"}${(p.x - offsetX).toFixed(1)},${(p.y - offsetY).toFixed(1)}`);
-  }
-  return parts.join(" ");
-}
-
-/** Lifecycle: marks spread along the path as a stream; `phase` (0..1) advances them along it over time. */
-export function pathLayout(n: number, r: Rect, seed = 3, phase = 0): Layout {
-  const stops = pathStops(r);
+/**
+ * Lifecycle: marks fill the band with even density per area, so the count per stage falls with the taper.
+ * Positions are in flow order (t increasing with index) so the frame loop can stream them by index rotation.
+ * t is drawn from the density ∝ (1 - (1 - TAPER) t) by inverse CDF.
+ */
+export function flowLayout(n: number, r: Rect, seed = 3): Layout {
   const rnd = mulberry32(seed);
-  const width = Math.min(r.w, r.h) * 0.09;
-  const pts = [];
+  const k = 1 - FLOW_TAPER; // density slope
+  const pos = new Float32Array(n * 2);
+  const tone = new Uint8Array(n);
+  const column = new Uint8Array(n).fill(255);
+  const cy = r.y + r.h / 2;
   for (let i = 0; i < n; i++) {
-    const t = (i / n + phase) % 1;
-    const p = pathPoint(stops, t);
-    const q = pathPoint(stops, Math.min(1, t + 0.002));
-    const dx = q.x - p.x, dy = q.y - p.y, len = Math.hypot(dx, dy) || 1;
-    const off = (rnd() - 0.5) * 2 * width;
-    pts.push({ x: p.x + (-dy / len) * off, y: p.y + (dx / len) * off, tone: 0, column: 255 });
+    const u = (i + 0.5) / n;
+    // CDF(t) = (t - k t²/2) / (1 - k/2); solve for t
+    const t = (1 - Math.sqrt(1 - 2 * k * (1 - k / 2) * u)) / k;
+    const v = (rnd() * 2 - 1) * 0.92;
+    pos[i * 2] = r.x + r.w * t;
+    pos[i * 2 + 1] = cy + v * r.h * flowHalf(t);
   }
-  // Keep path order (not reading order) so the stream advances coherently.
-  const pos = new Float32Array(n * 2), tone = new Uint8Array(n), column = new Uint8Array(n).fill(255);
-  for (let i = 0; i < n; i++) { pos[i * 2] = pts[i].x; pos[i * 2 + 1] = pts[i].y; }
   return { pos, tone, column };
 }
 
@@ -271,7 +259,7 @@ export function layoutFor(state: RosterState, n: number, r: Rect): Layout {
     case "grid": return gridLayout(n, r);
     case "map": return mapLayout(n, r);
     case "columns": return columnsLayout(n, r);
-    case "path": return pathLayout(n, r);
+    case "path": return flowLayout(n, r);
     case "mark": return markLayout(n, r);
   }
 }
