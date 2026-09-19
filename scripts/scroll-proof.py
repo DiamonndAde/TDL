@@ -5,7 +5,7 @@ import sys
 from playwright.sync_api import sync_playwright
 CHROME = r"C:/Users/PC/AppData/Local/ms-playwright/chromium-1228/chrome-win64/chrome.exe"
 base = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:3131"
-ROUTES = ["/", "/services", "/services/payroll-management"]
+ROUTES = ["/", "/services", "/services/payroll-management", "/about-us"]
 failures = []
 
 def max_scroll(pg):

@@ -52,3 +52,10 @@ Regenerate: `bash scripts/serve-and-run.sh python scripts/form-proof.py <outdir>
 |---|---|
 | `m6-services-sheet.png` | `/services` index at 1280 and `/services/payroll-management` at 390 |
 | `m6-service-payroll.png` | `/services/payroll-management` at 1280, the lane lifted |
+
+## Milestone 7 — remaining pages
+
+| File | What |
+|---|---|
+| `m7-about.png` | `/about-us` opening: the Roster settled as the mark beside the story |
+| `m7-pages-sheet.png` | about, work, careers, contact, certifications, privacy at 1280, and about at 390 |

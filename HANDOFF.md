@@ -6,6 +6,7 @@
 2. Confirm `FORM_WEBHOOK_URL` is set in Production and a test submission arrives where TDL expects it (Q20).
 3. Resolve every open row in `docs/CLIENT-QUESTIONS.md` marked blocking: logo lockup set (Q16), client logos in SVG/high-res (Q17), reference and quote sign-off (Q21–Q24), legal review (Q25). `grep -rn "TODO(client)" src/` must return only rows the client has explicitly accepted as-is.
 4. Replace the empty photo frames with TDL's own photography (Q18, Q26, Q27) or accept them empty for launch — never stock.
+5. If analytics or any non-essential cookie is added, put a consent gate in front of it before it fires (brief §10). Today nothing on the site sets one, so there is no banner.
 
 ## Running a client presentation with placeholder imagery (Windows PowerShell)
 
@@ -62,7 +63,7 @@ There is no CMS and no database. Every number, claim, service, testimonial and l
 
 Not a gap — a phase-two conversation. Today a schema plus a client bundle would buy nothing: nine pages of copy that changes a few times a year, and a form that already delivers. The trigger would be content that changes on a schedule someone other than a developer keeps:
 
-- **Careers listings are the first real case.** If TDL posts roles regularly, `/careers` should read from something HR can edit without a deploy. Before introducing anything new, **check what they already run**: an ATS (applicant tracking system) or a CRM with a careers feed beats adding a CMS. A job feed from an existing tool is a fetch at build time, not a content platform.
+- **Careers listings are the first real case — and TDL already runs an ATS.** The current site links openings to Zoho Recruit (`totaldatalimited.zohorecruit.com/jobs/Careers`), so `/careers` links there and never duplicates listings. If a listing feed on this site is ever wanted, it is a build-time fetch from Zoho Recruit's API, not a CMS. The talent-pool form posts to the same webhook as the enquiry form with `source: careers`, so it can be routed into Zoho Recruit or an inbox without code.
 - **Insights, if they commit to publishing.** Same test: a real cadence, a named owner. MDX in the repo is enough for a post a month; a CMS is for a team.
 - **Case studies with client sign-off** stay in `src/content/` — they change rarely and every word needs approval anyway.
 
