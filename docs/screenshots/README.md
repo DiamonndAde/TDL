@@ -37,3 +37,11 @@ Review captures from each milestone, produced by the scripts in `scripts/` again
 | `m4-1280-close.png` | Close, the mark condensed |
 
 Regenerate: `bash scripts/serve-and-run.sh python scripts/home-shots.py <outdir> 1280 900 1` (and `390 844 2`).
+
+## Milestone 5 — `/become-a-client`
+
+| File | What |
+|---|---|
+| `m5-form-sheet.png` | Step 1 with a pre-selected service, step 3 with validation errors, the success state; and the same at 390 wide |
+
+Regenerate: `bash scripts/serve-and-run.sh python scripts/form-proof.py <outdir>` (add `390 844 2` for phone).

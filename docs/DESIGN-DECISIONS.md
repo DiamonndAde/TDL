@@ -193,3 +193,25 @@ Why the simulated figure stays high: Lighthouse's Lantern model takes the unthro
 - Home, before the close: a 16:9 frame reserved for one real photograph of TDL's team or the Ilupeju office (Q27), captioned with the address, visibly empty until then.
 - `/about-us` (milestone 7) is planned around real photography: leadership and board headshots at 4:5, office exterior and interior and staff at work at 3:2 (Q18). Spaces will be reserved the same way.
 - The hero stays abstract; nothing photographic above the fold.
+
+## 2026-09-19 — Milestone 5, `/become-a-client`
+
+Three steps (brief §9): what you need and how many people; your organisation; you. Progress is three segments in `--signal-deep` — the one live element on the page. Step panels slide 12 px in the direction of travel, 200 ms, user-triggered, off under reduced motion. Focus moves to the new step's heading; every control is native and labelled; errors are inline text that says how to fix it; the whole flow was driven by keyboard in `scripts/form-proof.py`.
+
+### Judgement calls
+
+- **Native form controls, not shadcn/ui.** The brief lists shadcn for form primitives. The form needs inputs, selects, radios and checkboxes; on the phones this audience uses, the OS picker for a native `<select>` beats any JS listbox, and native controls carry no library look to fight. `src/components/ui/field.tsx` styles them with the tokens. shadcn stays an option for a dialog if one is ever needed. No visual identity is defined by a library.
+- **No `@hookform/resolvers`.** A ten-line resolver bridges react-hook-form and zod 4.
+- **`zod/mini`, not `zod`.** The full build put 106 KB of own code on the route (over budget by 46 KB); the tree-shakeable functional build brings the route to 32.6 KB own code. The schema is shared by the client (per-step `trigger`) and the server action (whole submission again).
+- **react-hook-form under the React Compiler.** The compiler's lint flags it as an incompatible library — its `formState` is a read-tracking proxy that auto-memoisation can fail to subscribe. `EnquiryForm` carries `"use no memo"`; the rest of the app stays compiled.
+- **The route stays static.** Reading `?service=` on the server made it dynamic (a function per visit); the preselection is read on the client inside a Suspense boundary instead, so a service page's scoped CTA (`/become-a-client?service=payroll-management`) still pre-ticks the service.
+- **Delivery (Q20).** The server action re-validates and posts JSON to `FORM_WEBHOOK_URL` (`.env.example`) — any inbox, CRM or automation endpoint, no provider dependency. In development it logs. In production with nothing configured it refuses honestly and points to WhatsApp and the phone; nothing is silently swallowed. A hidden honeypot field discards bots as a fake success.
+- **The success state promises only what the client has published (Q12):** the 24-hour line, then "we talk through [the services you chose]". The proposal-in-five-days step from the brief is not stated until approved.
+
+### Proofs (`scripts/form-proof.py`, desktop and 390 px)
+
+Pre-selection from the query string; step 1 refuses without a headcount and names it; radio chosen by keyboard; focus lands on "Your organisation"; step 3 refuses a malformed email and an unticked consent with fix-it messages; with a local webhook the payload arrives as JSON and the success state renders; without one, the fallback message renders. No page errors.
+
+### First-load JS
+
+`/` 151.9 KB (own 10.2 KB). `/become-a-client` 174.3 KB (own 32.6 KB: react-hook-form ~19, zod/mini + schema ~6, form ~8). Budget: floor + 60 KB.

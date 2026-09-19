@@ -67,7 +67,7 @@ These came off totaldatalimited.com and can go in as real content. Still worth a
 | 26 | **Headshots of the three testimonial executives** — Chidi Okonkwo (Carlcare), Mr. Michael Kehinde (Chi Limited), Dorothy Akpati (Transsnet Music) — square or 4:5, ≥ 400 px. TDL to obtain with each person's permission, since they are the client's contacts | They are real executives vouching for TDL; the home page renders an 88 px portrait frame per person, reserved and empty until these arrive |
 | 27 | **One real photograph for the home page**, near the close: TDL's own team or the 69 Coker Road office. 16:9, ≥ 2,400 px wide | The space is reserved on the home page and shows "Photograph to come" until this arrives. Not filled with anything else |
 | 19 | Quality Policy + Quality Objectives PDFs, ISO certificate, any licences | For the `/certifications` page |
-| 20 | Form submissions — where do they go? Email inbox, CRM, ATS? | Determines the submit handler. Building against a simple email send until told otherwise |
+| 20 | **Form submissions — where do they go?** Email inbox, CRM, ATS? Also: does +234 818 546 1010 take WhatsApp? | The server action posts each enquiry as JSON to `FORM_WEBHOOK_URL` (`.env.example`) — any inbox/CRM/automation endpoint. Until it is set, production tells the visitor to use WhatsApp or the phone; nothing is silently lost |
 
 ---
 
