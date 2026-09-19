@@ -30,7 +30,9 @@ Remove-Item Env:PLACEHOLDER_PRESENTATION_BUILD
 npm run build
 ```
 
-If `npm run build` or `npm start` prints `PLACEHOLDER_IMAGES=true in a production build` and stops, that is the guard working: the flag is set without the presentation marker. **Note that `.env.local` is read by `next build` and `next start` too**, so if `PLACEHOLDER_IMAGES=true` lives there, every production build and start needs `$env:PLACEHOLDER_PRESENTATION_BUILD = "1"` as well, and a normal build needs the line removed. The shell variable is the safer habit: it dies with the window and cannot follow the repo anywhere.
+**On Vercel:** a Preview deployment needs only `PLACEHOLDER_IMAGES=true` in the Preview environment. A Production deployment needs both `PLACEHOLDER_IMAGES=true` and `PLACEHOLDER_PRESENTATION_BUILD=1` in the Production environment, and **both must be removed before launch** — the build log says so every time it builds with them set.
+
+If `npm run build` or `npm start` prints `Placeholder guard:` and stops, that is the guard working: the flag is set without the presentation marker. **Note that `.env.local` is read by `next build` and `next start` too**, so if `PLACEHOLDER_IMAGES=true` lives there, every production build and start needs `$env:PLACEHOLDER_PRESENTATION_BUILD = "1"` as well, and a normal build needs the line removed. The shell variable is the safer habit: it dies with the window and cannot follow the repo anywhere.
 
 ## Verification scripts
 

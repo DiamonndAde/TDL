@@ -5,7 +5,8 @@ The site's photo frames are reserved for TDL's own photography (`docs/CLIENT-QUE
 ## It cannot ship by accident
 
 - Default is off. `PLACEHOLDER_IMAGES` is unset or `false` in every environment unless someone sets it for a demo.
-- `next.config.ts` **throws** if `PLACEHOLDER_IMAGES=true` on a production target: a Vercel production deployment, or any local `next build` not explicitly marked with `PLACEHOLDER_PRESENTATION_BUILD=1`. Preview deployments are allowed.
+- `next.config.ts` applies one rule everywhere — locally, on a Vercel preview, on a Vercel production deployment: with `PLACEHOLDER_IMAGES` on, a **production target** (`NODE_ENV=production` and `VERCEL_ENV` not `preview`) builds only if `PLACEHOLDER_PRESENTATION_BUILD` is also set; otherwise the build **fails** and the error prints every value it saw (`PLACEHOLDER_IMAGES`, `PLACEHOLDER_PRESENTATION_BUILD`, `NODE_ENV`, `VERCEL_ENV`, `VERCEL`). A Vercel **preview** needs only `PLACEHOLDER_IMAGES` — previews run with `NODE_ENV=production`, and `VERCEL_ENV=preview` is what tells them apart from the live deployment. Both variables are read the same way (trimmed, quotes stripped, case-insensitive; `true`/`1`/`yes`/`on`).
+- When a production target does build with both set, the build log carries `[placeholder guard] Presentation build … Remove … before launch`. **Before launch, remove both variables from the Vercel Production environment.** That is a checklist item, not a guard.
 - Flag off, the frames return to the empty reserved state. Nothing else changes.
 
 ## Never a face
@@ -30,7 +31,7 @@ Not used: anything from Unsplash+ / Getty (paid), and anything that is not a Nig
 PLACEHOLDER_IMAGES=true PLACEHOLDER_PRESENTATION_BUILD=1 npm run build && npm start
 ```
 
-or, for a Vercel preview deployment, set `PLACEHOLDER_IMAGES=true` on the **Preview** environment only.
+or, on Vercel: set `PLACEHOLDER_IMAGES=true` on the **Preview** environment (nothing else needed), or on Production set both `PLACEHOLDER_IMAGES=true` and `PLACEHOLDER_PRESENTATION_BUILD=1` for the presentation and remove both afterwards.
 
 ## Removing them for good
 

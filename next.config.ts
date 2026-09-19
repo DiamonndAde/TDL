@@ -2,18 +2,44 @@ import type { NextConfig } from "next";
 import bundleAnalyzer from "@next/bundle-analyzer";
 
 /**
- * Placeholder imagery can never ship by accident. PLACEHOLDER_IMAGES=true is refused for any production
- * target: a Vercel production deployment, or any local `next build` that is not explicitly marked as a
- * presentation build with PLACEHOLDER_PRESENTATION_BUILD=1. Preview deployments are allowed.
+ * Placeholder imagery cannot ship by accident.
+ *
+ * One rule, evaluated the same way everywhere (local, Vercel preview, Vercel production):
+ *   - PLACEHOLDER_IMAGES off  → nothing to check.
+ *   - PLACEHOLDER_IMAGES on   → allowed when the build is not a production target, or when the presentation
+ *                               marker PLACEHOLDER_PRESENTATION_BUILD is also set. Otherwise the build fails.
+ * A production target is NODE_ENV=production unless VERCEL_ENV says this is a preview (Vercel previews run with
+ * NODE_ENV=production; VERCEL_ENV is what tells a preview from the live deployment). Both variables are read
+ * the same way: trimmed, quotes stripped, case-insensitive, "true"/"1"/"yes"/"on" all count as on.
+ * The error prints every value it saw so the next failure diagnoses itself.
  */
-if (process.env.PLACEHOLDER_IMAGES === "true") {
-  const vercelEnv = process.env.VERCEL_ENV;
-  const productionTarget =
-    vercelEnv === "production" ||
-    (!vercelEnv && process.env.NODE_ENV === "production" && process.env.PLACEHOLDER_PRESENTATION_BUILD !== "1");
-  if (productionTarget) {
+const readEnv = (key: string) => (process.env[key] ?? "").trim().replace(/^["']|["']$/g, "");
+const isOn = (value: string) => ["true", "1", "yes", "on"].includes(value.toLowerCase());
+{
+  const seen = {
+    PLACEHOLDER_IMAGES: readEnv("PLACEHOLDER_IMAGES"),
+    PLACEHOLDER_PRESENTATION_BUILD: readEnv("PLACEHOLDER_PRESENTATION_BUILD"),
+    NODE_ENV: readEnv("NODE_ENV"),
+    VERCEL_ENV: readEnv("VERCEL_ENV"),
+    VERCEL: readEnv("VERCEL"),
+  };
+  const placeholders = isOn(seen.PLACEHOLDER_IMAGES);
+  const presentation = isOn(seen.PLACEHOLDER_PRESENTATION_BUILD);
+  const productionTarget = seen.NODE_ENV === "production" && seen.VERCEL_ENV !== "preview" && seen.VERCEL_ENV !== "development";
+  if (placeholders && productionTarget && !presentation) {
+    const report = Object.entries(seen)
+      .map(([k, v]) => `${k}=${v === "" ? "(unset)" : JSON.stringify(v)}`)
+      .join("  ");
     throw new Error(
-      "PLACEHOLDER_IMAGES=true in a production build. Placeholder stock must not ship. Unset it, or for a client presentation build set PLACEHOLDER_PRESENTATION_BUILD=1 (never on a production deployment).",
+      "Placeholder guard: PLACEHOLDER_IMAGES is on for a production target without the presentation marker. " +
+        "Placeholder stock must not ship. Either unset PLACEHOLDER_IMAGES, or set PLACEHOLDER_PRESENTATION_BUILD=1 " +
+        "for a deliberate client presentation build (remove both before launch). " +
+        `Values seen: ${report}`,
+    );
+  }
+  if (placeholders && productionTarget && presentation) {
+    console.warn(
+      `[placeholder guard] Presentation build: placeholder imagery is ON for a production target (VERCEL_ENV=${seen.VERCEL_ENV || "(unset)"}). Remove PLACEHOLDER_IMAGES and PLACEHOLDER_PRESENTATION_BUILD before launch.`,
     );
   }
 }
