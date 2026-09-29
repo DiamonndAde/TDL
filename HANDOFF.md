@@ -60,6 +60,24 @@ Prerequisites for the Python scripts: Python 3.9+ with `playwright` installed (`
 
 Completed at milestone 9. Sections are added as milestones close; the content the client still owes is tracked in `docs/CLIENT-QUESTIONS.md`, decisions in `docs/DESIGN-DECISIONS.md`.
 
+## Checking it still holds
+
+Four scripts, each exits non-zero on failure. Run them against a production build before any deploy that touches
+layout, routing or the form:
+
+```powershell
+$env:PLACEHOLDER_IMAGES = "false"; npm run build
+npm run test:harden    # redirects, sitemap, robots, JSON-LD, axe, keyboard, reduced motion
+npm run test:android   # applied 4x CPU + slow 4G: LCP, CLS, interaction latency, scroll-fling
+npm run test:scroll    # scroll position after client-side navigation
+node scripts/first-load.mjs / /careers /become-a-client
+```
+
+Lighthouse: `bash scripts/serve-and-run.sh bash scripts/lh-clean.sh <outdir> simulate _ become-a-client`. It kills
+Chrome between runs — headless instances leak on Windows and inflate TBT by several seconds, which has twice sent
+a session chasing a regression that was not there. Prefer `scripts/android-probe.py` for the numbers that decide
+anything; the simulated Lighthouse figure is recorded, not targeted (`docs/DESIGN-DECISIONS.md`, 2026-09-29).
+
 ## Content lives in `src/content/`
 
 There is no CMS and no database. Every number, claim, service, testimonial and logo is a TypeScript file under `src/content/`, tagged `TODO(client): Q<n>` where it is unconfirmed. To change copy, edit the file and redeploy. The site is fully static; the enquiry form posts to a configurable webhook (`FORM_WEBHOOK_URL`, see `.env.example`). Placeholder imagery is a presentation-only flag (`PLACEHOLDERS.md`).

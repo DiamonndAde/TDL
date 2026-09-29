@@ -29,7 +29,7 @@ export function Footer() {
           <p className="data mt-6 max-w-[34rem] text-ink-light">
             Personal data you give us is collected with your consent and processed under the {company.ndpr}. This is
             an abridged notice; the full policy is at{" "}
-            <Link href="/privacy-policy" className="text-paper underline-offset-4 hover:underline">
+            <Link href="/privacy-policy" className="text-paper underline underline-offset-4">
               /privacy-policy
             </Link>
             .

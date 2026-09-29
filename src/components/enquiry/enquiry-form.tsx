@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useForm, type FieldErrors, type Resolver } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -44,10 +43,6 @@ export function EnquiryForm() {
   // react-hook-form's formState is a read-tracking proxy; React Compiler memoisation can skip the reads that
   // subscribe it (react-hooks/incompatible-library). This component is compiled without memoisation.
   "use no memo";
-  const params = useSearchParams();
-  const preselected = params
-    .getAll("service")
-    .filter((s): s is ServiceSlug => services.some((x) => x.slug === s));
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [result, setResult] = useState<SubmitResult | null>(null);
@@ -59,7 +54,7 @@ export function EnquiryForm() {
     resolver,
     mode: "onTouched",
     defaultValues: {
-      services: preselected,
+      services: [],
       headcount: undefined,
       organisation: "",
       industry: "",
@@ -74,8 +69,20 @@ export function EnquiryForm() {
       website: "",
     },
   });
-  const { register, handleSubmit, trigger, formState, watch } = form;
+  const { register, handleSubmit, trigger, formState, watch, setValue } = form;
   const errors = formState.errors;
+
+  // `?service=<slug>` from a service page's scoped CTA pre-ticks that service. Read from the URL after mount,
+  // not with `useSearchParams`: that hook makes the client tree up to the nearest Suspense boundary
+  // client-rendered only, which left the whole form out of the prerendered HTML and shifted the page by its
+  // full height on hydration (CLS 0.60 on mobile, measured). Reading it here keeps the form in the HTML and
+  // costs one tick: a checkbox that is already on the page becomes ticked, which shifts nothing.
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search)
+      .getAll("service")
+      .filter((s): s is ServiceSlug => services.some((x) => x.slug === s));
+    if (wanted.length) setValue("services", wanted, { shouldValidate: false, shouldDirty: false });
+  }, [setValue]);
 
   useEffect(() => {
     if (firstRender.current) {

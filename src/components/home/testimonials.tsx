@@ -89,10 +89,12 @@ export function Testimonials({ monograms = false, hideEmpty = false }: { monogra
                 }`}
               >
                 {/* Portrait: a real headshot of the executive, 88 px, reserved until Q26. With placeholders on it
-                    shows an initials monogram — never a face, stock or generated, under a real name. */}
+                    shows an initials monogram — never a face, stock or generated, under a real name. An unselected
+                    portrait dims to 70%; the reserved "Portrait to come" text does not, because olive at 70% on
+                    paper is 3.2:1 and text has to hold 4.5:1. */}
                 {item.portrait || monograms || !hideEmpty ? (
                   <span
-                    className={`flex h-[88px] w-[88px] shrink-0 items-center justify-center border border-olive ${selected ? "" : "opacity-70"}`}
+                    className={`flex h-[88px] w-[88px] shrink-0 items-center justify-center border border-olive ${selected || !(item.portrait || monograms) ? "" : "opacity-70"}`}
                     data-todo="Q26"
                   >
                     {item.portrait ? (

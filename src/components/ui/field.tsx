@@ -7,7 +7,9 @@ import type { ComponentProps, ReactNode } from "react";
  */
 const control =
   "block w-full rounded-[2px] border border-olive bg-paper px-3.5 py-3 text-[16px] text-ink placeholder:text-olive/70 " +
-  "focus:border-signal-deep focus:outline-none focus:ring-2 focus:ring-signal-deep/30 aria-[invalid=true]:border-[#B3261E]";
+  // Focus is the global :focus-visible outline (2 px --signal-deep, offset 3 px), the same ring every other control
+  // on the site shows. The earlier 30%-alpha box-shadow ring was ~1.5:1 against paper — present, not visible.
+  "focus:border-signal-deep aria-[invalid=true]:border-[#B3261E]";
 
 export function Field({
   label,

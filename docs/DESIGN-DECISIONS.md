@@ -297,3 +297,52 @@ Two honest options: route the form into Zoho as a candidate, or drop the form an
 - **The about pair are equal height** (`h-full` on the reservation and its figure) so two notes side by side read as one row.
 - **`PRESENTATION_HIDE_EMPTY_FRAMES=true`** leaves every reserved frame out — photo frames, and the portrait frames that would say "Portrait to come" — so a client meeting can show each page as it will read once their photography arrives. Wrappers go with them: the home office section disappears, the careers header drops its third column, the about office section goes when neither frame is left (the certifications link it carried is in the footer), and the leadership/board rows lose their portrait column. Frames holding a real image, a registered placeholder or a monogram are untouched, so the likely meeting setup (`PLACEHOLDER_IMAGES=true` + this) shows one placeholder per page, monograms, and no "to come" anywhere. It hides rather than shows, so it is a build warning on a production target, not a stop; it is on the launch checklist regardless.
 - Verified with production builds (`scripts/frame-crops.py`, `docs/screenshots/frames-{off,hide,meeting}-*`): flag off → 5 reserved frames on `/`, 7 on `/about-us`, 1 on `/careers`; hide on → 0, 0, 0 with the office section absent from `/`; hide + placeholders → 1 placeholder per page, monograms, no reservations. `npm run lint` 0 errors; `tsc` clean.
+
+## 2026-09-29 — Milestone 8, hardening
+
+One script per pass, all repeatable: `scripts/harden.py` (redirects, sitemap, robots, JSON-LD, axe, keyboard, reduced motion), `scripts/android-probe.py` (applied throttling on a mid-range Android profile, load and interaction), `scripts/lh-clean.sh` (Lighthouse with Chrome killed between runs). Each prints ok/FAIL per check and exits non-zero, so a future session can re-run them rather than re-derive them.
+
+### Three real defects, found and fixed
+
+- **`/become-a-client` shifted by the full height of the form: CLS 0.601 mobile, 0.686 desktop** — six times the 0.1 requirement, on the money page. Cause: the form sat in `<Suspense fallback={null}>` so it could call `useSearchParams` while the route stayed static. The local Next docs are explicit — on a prerendered route that hook makes the client tree *up to the nearest boundary* client-rendered only, so the form was absent from the HTML and appeared on hydration, pushing the footer down. Fixed by reading `window.location.search` in an effect after mount instead: the form is in the prerendered HTML, the route is still static, and the preselection costs one tick in which a checkbox that is already on the page becomes ticked. **CLS is now 0.000 on every route.** Verified that `?service=` still works on direct load (one service, two services, junk slug ignored), on in-app navigation from a service page's scoped CTA, and after back-then-forward remount.
+- **Form inputs had no visible focus ring.** `src/components/ui/field.tsx` carried `focus:outline-none` plus a `ring-2 ring-signal-deep/30` box-shadow — 30% alpha on paper is about 1.5:1, present but not visible, and it suppressed the global `:focus-visible` outline every other control on the site uses. Removed both; native controls now show the same 2 px `--signal-deep` outline as buttons and links. This is the brief's "visible keyboard focus everywhere", and it had been quietly false since milestone 5.
+- **Two contrast failures** that Lighthouse's a11y score had been hiding at 97 and the earlier note deferred: the footer's in-text `/privacy-policy` link was underline-on-hover only (axe `link-in-text-block`: a link inside a paragraph must be distinguishable without colour alone) — now permanently underlined; and the unselected testimonial portrait frames dimmed to `opacity-70`, which took the reserved "Portrait to come" text to 3.18:1 against paper. The dim now applies only when the frame holds a portrait or a monogram, never to text. **axe: zero serious or critical violations on all 17 routes at 1280 px and 390 px. Lighthouse accessibility 100 on every route measured.**
+
+### Performance: the numbers, and which model produced them
+
+Applied throttling (CDP: 4× CPU, 150 ms RTT / 1.6 Mbps, 412×823 at DPR 2 — a Moto G Power profile), which is the model this project accepted on 2026-09-19 as the working number:
+
+| Route | FCP | LCP | LCP element | CLS |
+|---|---|---|---|---|
+| `/` | 1.40–1.60 s | **1.40–1.60 s** | `h1#hero-headline` | 0.000 |
+| `/services` | 0.38 s | 0.38 s | intro paragraph | 0.000 |
+| `/services/payroll-management` | 0.35 s | 0.35 s | `h1#service-title` | 0.000 |
+| `/about-us` | 0.42 s | 0.45 s | intro paragraph | 0.000 |
+| `/careers` | 0.35 s | 0.35 s | `h1#careers-title` | 0.000 |
+| `/become-a-client` | 0.30–0.42 s | 0.63–0.66 s | step caption | 0.000 |
+| `/work` | 0.32 s | 0.44 s | intro paragraph | 0.000 |
+
+LCP equals FCP on every route but two — one paint, no second candidate — which is the check that matters for the hero: **the SplitText reveal is not delaying LCP.** Worst interaction latency (the measurement INP is taken from): 136 ms on `/` (service rows, testimonial tabs, full-quote expansion), 144 ms on `/become-a-client` (step change), 48 ms on `/careers`. A full-page fling hero-to-footer produced no long task and landed at the footer. **All three requirements — LCP < 2.5 s, CLS < 0.1, INP < 200 ms — are met under applied throttling.**
+
+Lighthouse simulated (Lantern), same build, for the record: perf 86–97, LCP 2.0–3.3 s, CLS 0, TBT 120–440 ms. The gap to the applied figures is the Lantern-on-localhost artefact already analysed on 2026-09-19 (every framework request finishes before the observed paint, so the model treats them all as LCP dependencies). Recorded, not targeted.
+
+### Two measurement traps, both previously documented and both hit again
+
+- **Leaked headless Chrome inflates TBT.** A first sweep of ten Lighthouse runs left 30 Chrome processes alive and reported home TBT 2,770 ms; with Chrome killed between runs the same build reports 440 ms. `scripts/lh-clean.sh` does the killing. Any Lighthouse figure from a batch run without it is worthless — this is the second time it has cost a session.
+- **Blocking time on `/` is too noisy on this machine to optimise against.** Four runs of the same build: 889, 1,414, 1,494, 1,905 ms of blocking at 4× CPU. An experiment removing the `timeout: 1500` from the Roster's idle layout warming measured "worse" (889 → 1,494) and was reverted — then the reverted build measured 1,905, i.e. the difference was noise, not the change. **Reverted; no evidence either way.** The dominant cost is real and identified — one function in the Roster chunk, the map mask rasterise and placement, 561 ms self time at 4× CPU — and it runs after first paint, off the critical path. If it is ever worth removing, precompute the mask at build time rather than re-tuning the idle scheduler; do not re-run the timeout experiment on a machine this noisy.
+
+### Redirects, sitemap, JSON-LD
+
+- Every URL on the live site is checked by following the chain by hand, because a 308 that lands on a 301 or a 404 is not the equivalence the brief asks for: seven preserved paths plus all seven service paths serve 200; each trailing-slash form (how the current site links them) 308s to the canonical path; `/new-client`, `/new-client/`, `/Blog`, `/index.html` reach their destinations by 308s only. The four WordPress leftovers still in the live sitemap (`/sample-page/`, `/2025/04/22/hello-world/`, `/category/uncategorized/`, `/author/admin_4qzhav2h/`) end in a clean 404 — deliberately not redirected: they are a default install's sample content, not indexed pages worth preserving.
+- Sitemap lists exactly the 17 indexable routes and nothing else (`/insights` and `/dev` excluded), all absolute https; robots disallows `/dev/` and points at the sitemap; `/insights` is `noindex`.
+- Every JSON-LD block parses, carries its expected `@type` and contains no raw `<`: Organization + LocalBusiness on `/` and `/about-us`, LocalBusiness on `/contact-us`, seven Service nodes on `/services`, one per service page.
+
+### Keyboard and reduced motion
+
+Keyboard, all asserting a visible ring at each stop: first Tab reaches the skip link; service rows open on Enter and Space and move on ArrowDown, and Tab from an open row reaches the link inside its panel; the testimonial tablist selects on ArrowDown and End and Tab leaves it cleanly; the form ticks a service and a headcount with Space, Continue moves to step 2 with focus on its heading, Continue with empty fields returns focus to the first invalid field with the error shown, and Back returns to step 1's heading.
+
+Reduced motion: the proof figures are final at `domcontentloaded` and unchanged 1.5 s later (the "0+" regression of 2026-09-19 stays fixed), no web animation is running at rest, Lenis is not mounted, the headline is fully visible with nothing left split-hidden, the status line still changes state on scroll, and the canvas is present and `aria-hidden`. With `Save-Data` no canvas mounts at all.
+
+### First-load JS (floor 141.7 KB, budget floor + 60 KB own)
+
+`/` 154.2 (own 12.5) · `/services` 144.6 (2.9) · `/services/[slug]` 144.7 (3.0) · `/about-us` 144.6 (2.9) · `/careers` 174.2 (32.5) · `/become-a-client` 176.5 (34.8) · `/work`, `/contact-us`, `/certifications`, `/privacy-policy`, `/insights` 142.7 (1.0). Worst route 176.5 KB against a 201.7 KB budget. The two form routes carry react-hook-form and `zod/mini`; everything else is close to the floor.

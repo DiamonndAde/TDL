@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit",
     "first-load": "node scripts/first-load.mjs",
     "test:scroll": "bash scripts/serve-and-run.sh python scripts/scroll-proof.py",
-    "test:form": "bash scripts/serve-and-run.sh python scripts/form-proof.py docs/screenshots"
+    "test:form": "bash scripts/serve-and-run.sh python scripts/form-proof.py docs/screenshots",
+    "test:harden": "bash scripts/serve-and-run.sh python scripts/harden.py docs/screenshots",
+    "test:android": "bash scripts/serve-and-run.sh python scripts/android-probe.py"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

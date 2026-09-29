@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { Container } from "@/components/layout/container";
 import { EnquiryForm } from "@/components/enquiry/enquiry-form";
 import { company } from "@/content/facts";
@@ -13,7 +12,9 @@ export const metadata: Metadata = {
 
 /**
  * The money page. Quiet, paper, one form. `?service=<slug>` (from a service page's scoped CTA) pre-selects
- * that service in step 1 — read on the client inside a Suspense boundary so the route stays static.
+ * that service in step 1; the form reads it from the URL after mount, so the route stays static *and* the form
+ * is in the prerendered HTML. It used to sit in a `Suspense` boundary for `useSearchParams`, which kept it out
+ * of the HTML entirely and cost 0.60 CLS on mobile.
  */
 export default function BecomeAClientPage() {
   return (
@@ -30,9 +31,7 @@ export default function BecomeAClientPage() {
           </p>
         </div>
         <div>
-          <Suspense fallback={null}>
-            <EnquiryForm />
-          </Suspense>
+          <EnquiryForm />
         </div>
       </Container>
     </main>
