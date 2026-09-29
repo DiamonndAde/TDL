@@ -5,6 +5,7 @@ import { Register } from "@/components/layout/register";
 import { ApplicationForm } from "@/components/careers/application-form";
 import { PhotoFrame, frameShown } from "@/components/ui/photo-frame";
 import { careers } from "@/content/about";
+import { openingsUrl } from "@/lib/recruitment";
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -14,11 +15,13 @@ export const metadata: Metadata = {
 };
 
 /**
- * The job-seeker funnel, kept apart from the client funnel (brief §2). Openings are TDL's own Zoho Recruit board
- * — an existing system, linked rather than duplicated (Q14, HANDOFF.md). The talent-pool form is for people
- * whose role is not listed. Diversity and perks text is the current site's own.
+ * The job-seeker funnel, kept apart from the client funnel (brief §2). Openings live in TDL's own applicant
+ * tracking system — an existing system, linked rather than duplicated (Q14, HANDOFF.md) — and the board URL
+ * comes from the recruitment adapter, so this page names no provider. The talent-pool form is for people whose
+ * role is not listed. Diversity and perks text is the current site's own.
  */
 export default function CareersPage() {
+  const board = openingsUrl();
   const showPhoto = frameShown({ placeholder: "desk-work" });
   const columns = showPhoto ? "lg:grid-cols-[12.5rem_minmax(0,1fr)_minmax(0,24rem)]" : "lg:grid-cols-[12.5rem_minmax(0,1fr)]";
   return (
@@ -34,16 +37,25 @@ export default function CareersPage() {
               Roles with us, and with the companies whose people we run.
             </h1>
             <p className="mt-6 max-w-[36em] text-[1.0625rem] text-olive md:text-[1.125rem]">
-              Current openings are listed on our recruitment portal. If your role is not there, join the talent pool
-              below and we will contact you when one matches.
+              {board
+                ? "Current openings are listed on our recruitment portal. If your role is not there, join the talent pool below and we will contact you when one matches."
+                : "Join the talent pool below and we will contact you when a role matches."}
             </p>
+            {/* With a board, it leads and the talent pool is the secondary route; without one, the talent pool
+                is the only way in and takes the button. */}
             <div className="mt-8 flex flex-wrap items-center gap-6">
-              <Button href={careers.openingsUrl} rel="noopener" target="_blank">
-                See current openings
-              </Button>
-              <a href="#talent-pool" className="text-[15px] underline underline-offset-4">
-                Join the talent pool
-              </a>
+              {board ? (
+                <>
+                  <Button href={board} rel="noopener" target="_blank">
+                    See current openings
+                  </Button>
+                  <a href="#talent-pool" className="text-[15px] underline underline-offset-4">
+                    Join the talent pool
+                  </a>
+                </>
+              ) : (
+                <Button href="#talent-pool">Join the talent pool</Button>
+              )}
             </div>
           </div>
           {/* No caption: a careers page image needs no claim about whose staff these are. */}

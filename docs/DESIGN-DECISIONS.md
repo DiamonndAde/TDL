@@ -346,3 +346,39 @@ Reduced motion: the proof figures are final at `domcontentloaded` and unchanged 
 ### First-load JS (floor 141.7 KB, budget floor + 60 KB own)
 
 `/` 154.2 (own 12.5) · `/services` 144.6 (2.9) · `/services/[slug]` 144.7 (3.0) · `/about-us` 144.6 (2.9) · `/careers` 174.2 (32.5) · `/become-a-client` 176.5 (34.8) · `/work`, `/contact-us`, `/certifications`, `/privacy-policy`, `/insights` 142.7 (1.0). Worst route 176.5 KB against a 201.7 KB budget. The two form routes carry react-hook-form and `zod/mini`; everything else is close to the floor.
+
+## 2026-09-29 — Recruitment adapter: the site no longer knows which ATS TDL runs
+
+TDL may move off Zoho Recruit; nobody has said why or when (Q29). That is a reason to keep the *coupling* small, not a reason to build anything. So the site now talks to a port — `RecruitmentProvider` in `src/lib/recruitment/types.ts` — with one adapter per provider behind it.
+
+- **The interface is what the site actually calls**, nothing more: `listOpenings`, `createCandidate`, `addNote`, plus `openingsUrl` (the board the careers page links to) and a `capabilities` flag set. Methods return a result, never throw: `unsupported` (this provider cannot do this at all), `unconfigured` (credentials missing), `failed` (a real error). The distinction matters because only `failed` is worth telling a visitor about.
+- **Three adapters.** `zoho.ts` is the existing Zoho Recruit code, unchanged in behaviour. `webhook.ts` posts to `FORM_WEBHOOK_URL` as before. `none.ts` refuses honestly and logs in development — a form that says "thank you" and drops a CV is worse than one that says it is not connected.
+- **One contract worth stating:** a provider that reports `addNote: false` must deliver `draft.message` itself inside `createCandidate`. The webhook has no record to annotate, so it posts the whole draft. Nothing an applicant wrote can be dropped by a provider that happens to lack notes.
+- **Selection** is `RECRUITMENT_PROVIDER` (`zoho` | `webhook` | `none`) when set, otherwise auto: ATS credentials, then the webhook, then none — which is exactly what every environment does today, so nothing changed operationally. It is evaluated per call, not at module load, so a variable added in the hosting dashboard takes effect on the next request.
+- **The board URL moved out of the page.** `/careers` used to read `careers.openingsUrl` from content and hard-link Zoho's board; it now calls `openingsUrl()`. The URL still lives in `src/content/about.ts` (it is copy, and it is TDL's own address), with `RECRUITMENT_BOARD_URL` as the override a move to another ATS would use first. If a provider ever returns `null`, the page drops the "See current openings" button and promotes the talent pool to the primary CTA rather than linking somewhere that does not exist.
+- **`src/lib/zoho-recruit.ts` is gone.** Nothing outside `src/lib/recruitment/` imports an adapter, reads a `ZOHO_*` variable or names a provider export.
+
+### Enforced, not just asked for
+
+`node scripts/check-adapter.mjs` fails the check when (a) anything outside the adapter directory imports an adapter module, reads a provider's environment variable, or names a provider's exports; (b) anything on the recruitment path touches the filesystem, a database client or browser storage; (c) `index.ts` re-exports an adapter wholesale, which would let callers reach past the interface. It strips comments before testing, deliberately: a comment saying which ATS TDL runs today is useful, and the board URL in `src/content` is data, not wiring. Prose is not coupling.
+
+`node --experimental-strip-types scripts/provider-proof.mjs` runs every branch against a local stub standing in for the OAuth and API endpoints — 18 checks, all passing: selection precedence and both overrides, the board fallback, the name split on the last word, that the free text is *not* written into a candidate field, that the note attaches to the created record, that only open roles are listed and each applies on the provider, that the webhook carries the message itself, that unsupported is reported as unsupported rather than as a failure, and that the null provider refuses instead of silently accepting. No credentials and no network needed, so it runs in CI and on a laptop.
+
+### No candidate data on our side, deliberately
+
+Every method is a pass-through: validated, forwarded, dropped. The site writes nothing to disk, to a database or to a log. This is not a performance choice — holding applicants' personal data would make this site a data controller under the NDPR, with retention, subject-access and deletion duties attached. The ATS already carries those duties. Check (b) above exists so that this stays true by accident-proofing rather than by memory.
+
+### If TDL leaves Zoho
+
+**Moving to another ATS is a new adapter** — one file implementing five members, plus an environment variable. That is the point of the port, and it is a day's work, not a project.
+
+**Replacing the ATS with something we build is a separate product**, and should be quoted as one. The minimum it would have to carry:
+
+- **Authentication and roles** — recruiters, hiring managers, an administrator; who can see which candidates.
+- **A candidate pipeline** — stages, ownership, notes, rejection reasons, duplicate detection across repeat applicants.
+- **CV storage** — file upload, virus scanning, access control, and parsing if anyone expects search.
+- **Interview scheduling** — availability, invitations, calendar integration, reminders.
+- **Retention and deletion under Nigerian data protection law** — the NDPR gives data subjects access, correction and erasure rights, and requires a lawful basis and a retention period for candidate data. That means a records schedule, a way to action a deletion request across every copy, and someone accountable for answering one.
+- **Backups and an audit log** — who read or changed which record, and when; restorable without losing the audit trail.
+
+None of that is marketing-site work, and each item is a source of liability that Zoho currently absorbs. The honest recommendation if the question comes up: keep the ATS, change vendors if the reason is cost or a missing feature, and write a new adapter. Q29 asks what is actually driving the question, because "we want our own" and "Zoho is too expensive" have very different answers.

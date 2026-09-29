@@ -67,6 +67,8 @@ layout, routing or the form:
 
 ```powershell
 $env:PLACEHOLDER_IMAGES = "false"; npm run build
+npm run check:adapter  # nothing outside src/lib/recruitment is wired to an ATS; no candidate data stored
+npm run test:provider  # every adapter branch against a stub API (no credentials, no network)
 npm run test:harden    # redirects, sitemap, robots, JSON-LD, axe, keyboard, reduced motion
 npm run test:android   # applied 4x CPU + slow 4G: LCP, CLS, interaction latency, scroll-fling
 npm run test:scroll    # scroll position after client-side navigation

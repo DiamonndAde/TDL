@@ -20,7 +20,7 @@ const resolver: Resolver<Application> = async (values) => {
   return { values: {}, errors: errors as unknown as FieldErrors<Application> };
 };
 
-/** One short form for the talent pool (Q14). Openings are in Zoho Recruit; this is for people whose role is not listed. */
+/** One short form for the talent pool (Q14). Openings live in TDL's ATS; this is for people whose role is not listed. */
 export function ApplicationForm() {
   "use no memo";
   const [result, setResult] = useState<ApplyResult | null>(null);

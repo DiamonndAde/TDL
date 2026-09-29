@@ -13,7 +13,9 @@
     "test:scroll": "bash scripts/serve-and-run.sh python scripts/scroll-proof.py",
     "test:form": "bash scripts/serve-and-run.sh python scripts/form-proof.py docs/screenshots",
     "test:harden": "bash scripts/serve-and-run.sh python scripts/harden.py docs/screenshots",
-    "test:android": "bash scripts/serve-and-run.sh python scripts/android-probe.py"
+    "test:android": "bash scripts/serve-and-run.sh python scripts/android-probe.py",
+    "check:adapter": "node scripts/check-adapter.mjs",
+    "test:provider": "node --experimental-strip-types --no-warnings scripts/provider-proof.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
