@@ -78,6 +78,16 @@ export interface RecruitmentProvider {
    */
   readonly openingsUrl: string | null;
   readonly capabilities: ProviderCapabilities;
+  /**
+   * Decorate an outbound link to the provider so it can record where the candidate came from. How that is
+   * spelled is provider knowledge — Zoho has a `Source` field and its career-site URLs accept a parameter —
+   * so the analytics layer asks for a URL and never learns the parameter's name.
+   *
+   * Returns the URL untouched when the provider has no such mechanism or it has not been configured. It is
+   * deliberately opt-in: whether Zoho's career site actually writes the parameter onto the candidate record is
+   * unconfirmed (CLIENT-QUESTIONS.md Q29f), and a parameter that does nothing is noise in a link.
+   */
+  handoffUrl(url: string, source: string): string;
   listOpenings(): Promise<ProviderResult<Opening[]>>;
   createCandidate(draft: CandidateDraft): Promise<ProviderResult<{ id: string }>>;
   addNote(candidateId: string, note: Note): Promise<ProviderResult<void>>;

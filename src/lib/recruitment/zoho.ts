@@ -31,6 +31,12 @@ const env = () => ({
   boardUrl: boardUrl() ?? "",
   /** Must be a value that exists in the org's Candidates → Source picklist, or Zoho's default is used. */
   source: process.env.ZOHO_RECRUIT_SOURCE || "",
+  /**
+   * The query parameter the career site reads as the candidate's source, e.g. "source". Unset by default:
+   * whether Zoho writes it onto the record is unconfirmed (Q29f), and until their administrator says yes we
+   * do not append a parameter that does nothing.
+   */
+  sourceParam: process.env.ZOHO_RECRUIT_SOURCE_PARAM || "",
 });
 
 export const zohoConfigured = () => {
@@ -115,6 +121,18 @@ export const zohoRecruitProvider: RecruitmentProvider = {
     return env().boardUrl || null;
   },
   capabilities: { listOpenings: true, createCandidate: true, addNote: true },
+
+  handoffUrl(url: string, source: string): string {
+    const param = env().sourceParam;
+    if (!param || !url) return url;
+    try {
+      const u = new URL(url);
+      u.searchParams.set(param, source);
+      return u.toString();
+    } catch {
+      return url; // A relative or malformed board URL is left exactly as configured.
+    }
+  },
 
   /**
    * Openings for rendering in our own design, with the apply step handed back to Zoho. Unverified against TDL's

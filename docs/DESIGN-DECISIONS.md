@@ -382,3 +382,137 @@ Every method is a pass-through: validated, forwarded, dropped. The site writes n
 - **Backups and an audit log** — who read or changed which record, and when; restorable without losing the audit trail.
 
 None of that is marketing-site work, and each item is a source of liability that Zoho currently absorbs. The honest recommendation if the question comes up: keep the ATS, change vendors if the reason is cost or a missing feature, and write a new adapter. Q29 asks what is actually driving the question, because "we want our own" and "Zoho is too expensive" have very different answers.
+
+---
+
+## Built 2026-09-30 — switched off by default
+
+Approved with conditions; this section records what was built, what was measured, and the two places the first
+attempt was wrong. **No project key is set in any environment, so on every build today the banner does not
+render, the SDK is never fetched, and no request is made.** Everything below activates when TDL approves Q30 and
+`NEXT_PUBLIC_POSTHOG_KEY` is set.
+
+### Off by default, and it costs almost nothing to be off
+
+`analyticsConfigured` is `NEXT_PUBLIC_POSTHOG_KEY.length > 0`, inlined at build time. The consent banner, the
+consent store and the SDK starter live in a chunk behind a `React.lazy` gate, so with no key none of it is
+imported and nothing is requested.
+
+The first version rendered the banner and provider directly in the layout, which put **2.9 KB of dead code on
+every route**. Moving them behind `next/dynamic` recovered most of it but left 1.6 KB of loadable machinery;
+`React.lazy` behind a build-time constant leaves **0.5 KB**. A second mistake was folding `track()` into the same
+module as the runtime, so instrumenting a form pulled the consent store and SDK starter into that route's
+bundle — `lib/analytics/track.ts` is now deliberately the smallest module that can send an event.
+
+First-load JS, analytics **off** (the shipping default), against the pre-analytics baseline:
+
+| Route | before | now | delta |
+|---|---|---|---|
+| `/` | 12.4 | 13.0 | +0.6 |
+| `/services`, `/about-us` | 2.9 | 3.4 | +0.5 |
+| `/work`, `/contact-us`, `/certifications`, `/privacy-policy`, `/insights` | 1.0 | 1.5 | +0.5 |
+| `/careers` | 32.5 | 34.1 | +1.6 |
+| `/become-a-client` | 34.8 | 36.1 | +1.3 |
+
+The 0.5 KB is the gate; the extra 1.1 KB on the two form routes is the field instrumentation itself. Worst route
+177.8 KB against a 201.7 KB budget. With a key set, first-load is **identical** — the SDK is entirely lazy.
+
+### Replay: scope, and the sampling rate
+
+Session replay runs on `/careers` only, and on `/become-a-client` only if TDL approves it (Q30d) via
+`NEXT_PUBLIC_ANALYTICS_REPLAY_ENQUIRY`. **Never the home route** — it is the one page where the Roster already
+spends the visitor's data, and the funnels that need diagnosing are not there.
+
+**Sampling: 25% of sessions on a permitted route** (`NEXT_PUBLIC_ANALYTICS_REPLAY_SAMPLE`, default 0.25). The
+reasoning: replay is for diagnosis, funnels do the measurement. Nobody watches more than a few dozen recordings,
+so at TDL's likely volume a quarter still yields more than anyone will view while recording three-quarters
+fewer applicants. The draw is made once per session and kept in `sessionStorage`, because a visitor recorded on
+one page and not the next produces a useless half-session. Raise it temporarily to investigate something
+specific, then put it back.
+
+### Bundle: the slim build was evaluated and rejected
+
+Measured from the installed package (posthog-js 1.434.18), brotli, which is what a browser actually downloads:
+
+| Build | raw | gzip | **brotli** |
+|---|---|---|---|
+| `module.js` (what we ship) | 318 KB | 99.8 KB | **84.3 KB** |
+| `module.slim.js` | 150 KB | 51.0 KB | **44.5 KB** |
+| `module.full.js` | 661 KB | 202 KB | 168.7 KB |
+
+The slim build would save ~40 KB, and it was rejected: composing it with the session-replay extension requires
+`__extensionClasses`, a config key the type definitions mark `@internal`, on an entrypoint PostHog's own docs
+call experimental. This is client work that has to survive a dependency bump without a developer present.
+Revisit when `posthog-js/slim` resolves as a public subpath.
+
+What a consenting visitor actually downloads, measured from the built chunks: **81.5 KB brotli** for the SDK plus
+**~11 KB** for our runtime chunk, after first paint, plus PostHog's recorder (~40 KB brotli, fetched from their
+CDN) for the 25% of `/careers` sessions that are sampled. Someone who declines downloads none of it.
+
+### Consent banner
+
+Fixed to the bottom, mounted after first paint, early in the DOM so Tab reaches it straight after the skip link.
+
+- **Equal prominence, not just equal size.** The first version had a filled Accept beside an outlined Reject:
+  identical geometry, and still a recommendation. Both buttons are now visually identical apart from the word on
+  them. Verified from the rendered boxes — same tag, height (44 px), font size, weight, padding and opacity.
+- **No layout shift and never the LCP element**, measured on a throttled mobile profile (4× CPU, slow 4G,
+  412×823) with the banner on screen. A/B against the same build with analytics off:
+
+  | Route | analytics off | banner showing |
+  |---|---|---|
+  | `/` | FCP/LCP 1,784 ms, CLS 0.000 | FCP/LCP 1,340 ms, CLS 0.000 |
+  | `/careers` | 368 ms, CLS 0.000 | 404 ms, CLS 0.000 |
+  | `/become-a-client` | LCP 596 ms, CLS 0.000 | LCP 676 ms, CLS 0.000 |
+
+  Differences are inside this machine's documented run-to-run variance; **CLS is 0.000 in every case** and the
+  LCP element is page content on every route, never the banner.
+- **Keyboard and screen reader**: focus is not moved when it appears (an automatic jump interrupts someone
+  mid-sentence), both buttons take a visible ring, Tab moves Accept → Reject → out of the banner, so there is no
+  trap. It is a labelled region, not `aria-modal`, with a polite live announcement.
+- **Declining sets nothing.** The choice lives in `localStorage`, not a cookie. The footer carries "Analytics
+  choice (on/off)" so a refusal is reversible rather than a dead end.
+- Events raised before consent is answered — the page view, and anything done while the banner is up — wait in a
+  bounded queue and are sent only on acceptance. **Refusal discards them.**
+
+### Masking, verified on the wire
+
+`maskAllInputs: true`, `maskTextSelector: "*"` (everything masked, nothing deliberately unmasked),
+`mask_all_text: true` so autocapture cannot read the text of what it captures a click on, `person_profiles:
+"never"` because this site has no accounts and a profile per visitor is data we would have to defend.
+
+`scripts/masking-proof.py` does not read a vendor dashboard. `scripts/posthog-stub.py` stands in for PostHog:
+it answers the remote-config endpoints, serves the **real** recorder out of `node_modules` so genuine rrweb
+output is produced, and writes every POST body to a file. The proof fills both forms with canary tokens, then
+searches every captured byte under every plausible decoding — raw, gzip, zlib, form-encoded, base64, and
+base64-then-gzip.
+
+**Result: 13 payloads, 62,787 bytes inspected — 11 event payloads and 2 replay payloads — and no canary token
+under any decoding.** A control check confirms the canaries really were typed, so a clean scan is not a scan of
+nothing.
+
+Two ways this test passed while proving nothing, both now asserted against:
+
+1. **The recorder never ran.** The first version intercepted the whole PostHog origin, including the script
+   host, so the replay stream — the payload that matters most — was never produced. The stub now serves the
+   real recorder, and the proof fails if no `/s/` payload is seen.
+2. **PostHog drops automated traffic.** It ignores bot-like user agents *and* `navigator.webdriver === true`,
+   which every automation driver sets. With that unhandled the SDK captured nothing and the scan read an empty
+   file. The proof now presents an ordinary desktop Chrome UA and masks `webdriver`, and fails if no event
+   payload is seen. In production this is a feature: bot traffic will not pollute TDL's funnels.
+
+### Hardening, rerun for what analytics adds
+
+Every pass was run twice, once with a key set (banner showing) and once without (the shipping default):
+
+- `harden.py` — redirects, sitemap, robots, JSON-LD, axe on all 17 routes at 1280 and 390, keyboard, reduced
+  motion: **no failures in either state**.
+- `consent-proof.py` — axe on six routes with the banner **showing and dismissed**: no serious or critical
+  violations in either phase.
+- `test:scroll` — scroll position after client-side navigation: no failures in either state.
+- `check:adapter`, `test:provider`, `tsc`, `lint` (0 errors): clean.
+
+### What is not built
+
+The custom LLM digest. Phase one stands: PostHog's own weekly digest and insight alerts, which cost nothing and
+need no code. The phase-two write-up is in `docs/ANALYTICS-PROPOSAL.md` for TDL to accept or decline.

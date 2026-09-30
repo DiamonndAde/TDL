@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo } from "next/font/google";
 import localFont from "next/font/local";
+import { Analytics } from "@/components/layout/analytics";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { SmoothScroll } from "@/components/layout/smooth-scroll";
@@ -57,6 +58,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
+        {/* Consent banner and the SDK starter, as one lazy chunk. Early in the DOM so Tab reaches the choice
+            right after the skip link; painted at the bottom of the viewport. Nothing at all without a key. */}
+        <Analytics />
         <SmoothScroll />
         <RosterProvider>
           <Header />

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { company } from "@/content/facts";
 import { services } from "@/content/services";
 import { Container } from "./container";
+import { ConsentReopen } from "./consent-reopen";
 import { Logo } from "./logo";
 
 /**
@@ -69,6 +70,7 @@ export function Footer() {
           <Link href="/cookies-policy" className="underline-offset-4 hover:underline">
             Cookies
           </Link>
+          <ConsentReopen />
         </p>
       </Container>
     </footer>

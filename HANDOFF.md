@@ -7,7 +7,7 @@
    Set `ZOHO_RECRUIT_CLIENT_ID`, `ZOHO_RECRUIT_CLIENT_SECRET` and `ZOHO_RECRUIT_REFRESH_TOKEN` (Q29) and send one talent-pool submission from `/careers`: it must appear in Zoho Recruit → Candidates with a note titled "Talent pool submission from totaldatalimited.com". Until those three are set, talent-pool submissions go to the webhook instead — an inbox recruiters do not read, so somebody must own it.
 3. Resolve every open row in `docs/CLIENT-QUESTIONS.md` marked blocking: logo lockup set (Q16), client logos in SVG/high-res (Q17), reference and quote sign-off (Q21–Q24), legal review (Q25). `grep -rn "TODO(client)" src/` must return only rows the client has explicitly accepted as-is.
 4. Replace the empty photo frames with TDL's own photography (Q18, Q26, Q27) or accept them empty for launch — never stock.
-5. If analytics or any non-essential cookie is added, put a consent gate in front of it before it fires (brief §10). Today nothing on the site sets one, so there is no banner.
+5. **Analytics is built but switched off.** No `NEXT_PUBLIC_POSTHOG_KEY` is set anywhere, so no banner shows, no SDK is downloaded and no request is made. Before ever setting it: TDL must approve Q30, the privacy and cookies notices must carry the new section (Q25 legal review, draft in `docs/ANALYTICS-PROPOSAL.md`), and the PostHog project must be created **in the EU cloud** — the region is fixed at creation and cannot be changed. Then run `npm run test:masking` against that build and confirm it reports no canary tokens.
 
 ## Running a client presentation with placeholder imagery (Windows PowerShell)
 

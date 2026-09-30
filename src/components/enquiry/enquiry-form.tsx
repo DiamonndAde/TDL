@@ -8,6 +8,9 @@ import { ChoiceRow, Field, Input, Select } from "@/components/ui/field";
 import { company, process as processFacts } from "@/content/facts";
 import { services, type ServiceSlug } from "@/content/services";
 import { submitEnquiry, type SubmitResult } from "@/app/become-a-client/actions";
+import { track } from "@/lib/analytics/track";
+import { useFieldTracking } from "@/lib/analytics/use-field-tracking";
+import type { FieldName } from "@/lib/analytics/events";
 import {
   arrangementOptions,
   contactTimeOptions,
@@ -72,6 +75,14 @@ export function EnquiryForm() {
   const { register, handleSubmit, trigger, formState, watch, setValue } = form;
   const errors = formState.errors;
 
+  // Field order across all three steps, so the funnel index says how far someone got overall.
+  const FIELDS: FieldName[] = [
+    "services", "headcount",
+    "organisation", "industry", "location", "arrangement",
+    "name", "role", "email", "phone", "contactTime", "consent",
+  ];
+  const field = useFieldTracking("enquiry", FIELDS);
+
   // `?service=<slug>` from a service page's scoped CTA pre-ticks that service. Read from the URL after mount,
   // not with `useSearchParams`: that hook makes the client tree up to the nearest Suspense boundary
   // client-rendered only, which left the whole form out of the prerendered HTML and shifted the page by its
@@ -82,9 +93,13 @@ export function EnquiryForm() {
       .getAll("service")
       .filter((s): s is ServiceSlug => services.some((x) => x.slug === s));
     if (wanted.length) setValue("services", wanted, { shouldValidate: false, shouldDirty: false });
+    // The funnel's entry event, fired here rather than in the page because this is where the preselected
+    // service is known. It is a slug from our own content, not anything the visitor typed.
+    track({ name: "enquiry_viewed", preselected_service: wanted[0] ?? "none" });
   }, [setValue]);
 
   useEffect(() => {
+    track({ name: "enquiry_step_viewed", step: stepNumber(step) });
     if (firstRender.current) {
       firstRender.current = false;
       return;
@@ -94,11 +109,18 @@ export function EnquiryForm() {
 
   const next = async () => {
     const ok = await trigger(stepFields[step], { shouldFocus: true });
-    if (!ok) return;
+    if (!ok) {
+      // Which question stopped them is the whole question this funnel exists to answer.
+      const blocking = stepFields[step].find((f) => f in form.formState.errors) as FieldName | undefined;
+      track({ name: "enquiry_step_blocked", step: stepNumber(step), first_invalid_field: blocking ?? "services" });
+      return;
+    }
+    track({ name: "enquiry_step_completed", step: stepNumber(step) });
     setDirection(1);
     setStep((s) => Math.min(2, s + 1));
   };
   const back = () => {
+    track({ name: "enquiry_step_back", step: stepNumber(step) });
     setDirection(-1);
     setStep((s) => Math.max(0, s - 1));
   };
@@ -106,7 +128,11 @@ export function EnquiryForm() {
     startTransition(async () => {
       const r = await submitEnquiry(data);
       setResult(r);
-      if (r.ok) window.scrollTo({ top: 0, behavior: "auto" });
+      if (r.ok) {
+        // Counts and the band they chose, which is already a bucket. Nothing they typed.
+        track({ name: "enquiry_submitted", services_count: data.services.length, headcount_band: data.headcount });
+        window.scrollTo({ top: 0, behavior: "auto" });
+      }
     });
   };
 
@@ -144,16 +170,16 @@ export function EnquiryForm() {
         ) : step === 1 ? (
           <>
             <Field label="Organisation" htmlFor="organisation" error={errors.organisation?.message}>
-              <Input id="organisation" autoComplete="organization" invalid={!!errors.organisation} {...register("organisation")} />
+              <Input id="organisation" autoComplete="organization" invalid={!!errors.organisation} {...register("organisation")} onFocus={field.onFocus("organisation")} onBlur={field.onBlur("organisation")} />
             </Field>
             <Field label="Industry" hint="For example: manufacturing, telecoms, financial services." htmlFor="industry" error={errors.industry?.message}>
-              <Input id="industry" invalid={!!errors.industry} {...register("industry")} />
+              <Input id="industry" invalid={!!errors.industry} {...register("industry")} onFocus={field.onFocus("industry")} onBlur={field.onBlur("industry")} />
             </Field>
             <Field label="Where are the people?" hint="City or state. Benin Republic counts." htmlFor="location" error={errors.location?.message}>
-              <Input id="location" autoComplete="address-level2" invalid={!!errors.location} {...register("location")} />
+              <Input id="location" autoComplete="address-level2" invalid={!!errors.location} {...register("location")} onFocus={field.onFocus("location")} onBlur={field.onBlur("location")} />
             </Field>
             <Field label="How is this handled today?" htmlFor="arrangement" error={errors.arrangement?.message}>
-              <Select id="arrangement" defaultValue="" invalid={!!errors.arrangement} {...register("arrangement")}>
+              <Select id="arrangement" defaultValue="" invalid={!!errors.arrangement} {...register("arrangement")} onFocus={field.onFocus("arrangement")} onBlur={field.onBlur("arrangement")}>
                 <option value="" disabled>
                   Choose one
                 </option>
@@ -169,20 +195,20 @@ export function EnquiryForm() {
           <>
             <div className="grid gap-7 md:grid-cols-2">
               <Field label="Your name" htmlFor="name" error={errors.name?.message}>
-                <Input id="name" autoComplete="name" invalid={!!errors.name} {...register("name")} />
+                <Input id="name" autoComplete="name" invalid={!!errors.name} {...register("name")} onFocus={field.onFocus("name")} onBlur={field.onBlur("name")} />
               </Field>
               <Field label="Your role" htmlFor="role" error={errors.role?.message}>
-                <Input id="role" autoComplete="organization-title" invalid={!!errors.role} {...register("role")} />
+                <Input id="role" autoComplete="organization-title" invalid={!!errors.role} {...register("role")} onFocus={field.onFocus("role")} onBlur={field.onBlur("role")} />
               </Field>
               <Field label="Email" htmlFor="email" error={errors.email?.message}>
-                <Input id="email" type="email" inputMode="email" autoComplete="email" invalid={!!errors.email} {...register("email")} />
+                <Input id="email" type="email" inputMode="email" autoComplete="email" invalid={!!errors.email} {...register("email")} onFocus={field.onFocus("email")} onBlur={field.onBlur("email")} />
               </Field>
               <Field label="Phone" hint="We call or WhatsApp this number." htmlFor="phone" error={errors.phone?.message}>
-                <Input id="phone" type="tel" inputMode="tel" autoComplete="tel" invalid={!!errors.phone} {...register("phone")} />
+                <Input id="phone" type="tel" inputMode="tel" autoComplete="tel" invalid={!!errors.phone} {...register("phone")} onFocus={field.onFocus("phone")} onBlur={field.onBlur("phone")} />
               </Field>
             </div>
             <Field label="When should we call?" htmlFor="contactTime" error={errors.contactTime?.message}>
-              <Select id="contactTime" defaultValue="" invalid={!!errors.contactTime} {...register("contactTime")}>
+              <Select id="contactTime" defaultValue="" invalid={!!errors.contactTime} {...register("contactTime")} onFocus={field.onFocus("contactTime")} onBlur={field.onBlur("contactTime")}>
                 <option value="" disabled>
                   Choose a time
                 </option>
@@ -304,4 +330,9 @@ function Success({ services: chosen }: { services: ServiceSlug[] }) {
       </p>
     </div>
   );
+}
+
+/** The step index as the 1-based number the funnel reports. */
+function stepNumber(i: number): 1 | 2 | 3 {
+  return (i + 1) as 1 | 2 | 3;
 }

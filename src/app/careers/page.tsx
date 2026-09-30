@@ -3,9 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/layout/container";
 import { Register } from "@/components/layout/register";
 import { ApplicationForm } from "@/components/careers/application-form";
+import { OpeningsLink } from "@/components/careers/openings-link";
+import { PageViewed } from "@/components/layout/page-viewed";
 import { PhotoFrame, frameShown } from "@/components/ui/photo-frame";
 import { careers } from "@/content/about";
-import { openingsUrl } from "@/lib/recruitment";
+import { openingsLinkFor } from "@/lib/recruitment";
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -21,11 +23,13 @@ export const metadata: Metadata = {
  * role is not listed. Diversity and perks text is the current site's own.
  */
 export default function CareersPage() {
-  const board = openingsUrl();
+  // Decorated by the adapter with a source marker when one is configured (Q29f).
+  const board = openingsLinkFor("totaldatalimited.com/careers");
   const showPhoto = frameShown({ placeholder: "desk-work" });
   const columns = showPhoto ? "lg:grid-cols-[12.5rem_minmax(0,1fr)_minmax(0,24rem)]" : "lg:grid-cols-[12.5rem_minmax(0,1fr)]";
   return (
     <main id="main" className="bg-paper">
+      <PageViewed event={{ name: "careers_viewed" }} />
       <section aria-labelledby="careers-title">
         <Container className={`py-14 md:py-20 lg:grid ${columns} lg:gap-10`}>
           <div className="mb-6 lg:mb-0">
@@ -46,9 +50,7 @@ export default function CareersPage() {
             <div className="mt-8 flex flex-wrap items-center gap-6">
               {board ? (
                 <>
-                  <Button href={board} rel="noopener" target="_blank">
-                    See current openings
-                  </Button>
+                  <OpeningsLink href={board} />
                   <a href="#talent-pool" className="text-[15px] underline underline-offset-4">
                     Join the talent pool
                   </a>

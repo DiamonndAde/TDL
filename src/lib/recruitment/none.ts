@@ -16,6 +16,11 @@ export const noneProvider: RecruitmentProvider = {
   },
   capabilities: { listOpenings: false, createCandidate: false, addNote: false },
 
+  /** No handoff mechanism: no provider configured. */
+  handoffUrl(url: string): string {
+    return url;
+  },
+
   async listOpenings(): Promise<ProviderResult<Opening[]>> {
     return unsupported("no recruitment provider configured");
   },

@@ -37,3 +37,13 @@ export function getRecruitmentProvider(): RecruitmentProvider {
 export function openingsUrl(): string | null {
   return getRecruitmentProvider().openingsUrl;
 }
+
+/**
+ * The board link as it should be rendered: the provider's URL, decorated with a source marker if the provider
+ * has one configured. `/careers` calls this, so the page never learns how a given ATS spells "source".
+ */
+export function openingsLinkFor(source: string): string | null {
+  const provider = getRecruitmentProvider();
+  const url = provider.openingsUrl;
+  return url ? provider.handoffUrl(url, source) : null;
+}

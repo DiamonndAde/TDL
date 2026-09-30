@@ -1,6 +1,9 @@
 # Behavioural analytics on `/careers` and `/become-a-client` — proposal
 
-**Status: proposal only. No analytics code exists. Nothing here ships without approval.**
+**Status: approved with conditions and built 2026-09-30 — and switched off.** No project key is set in any
+environment, so the banner does not render, the SDK is never fetched and no request is made. What was built and
+measured is recorded in `docs/DESIGN-DECISIONS.md` ("Built 2026-09-30"). The weekly LLM digest at the end of
+this document is **not** built and is the one piece still awaiting a decision (Q30).
 Researched 2026-09-29 against each vendor's current docs and pricing; every size figure was measured, not quoted.
 
 TDL wants to know where people drop off on `/careers` — what they click, how far they scroll, where they give up. The same question applies to `/become-a-client`, which is the money page. This sets out the tool, the events, the consent gate, the masking, and a weekly digest, with the costs and the things that need TDL's decision.
@@ -163,3 +166,72 @@ Added to `docs/CLIENT-QUESTIONS.md` as Q30, and one part appended to Q29:
 4. `scripts/masking-proof.py`, run before the first deploy. Nothing ships if a canary token appears.
 5. Funnels and PostHog's own weekly digest. **Stop here and watch for a month.**
 6. Cron digest only if TDL asks for it after that month.
+
+---
+
+## Phase two: a written weekly digest — optional, not built
+
+**Phase one is what ships and what TDL should try first: PostHog's own weekly digest and insight alerts.** They
+cost nothing, need no code, no extra vendor and no further legal review, and they are turned on in the PostHog
+project settings in about a minute. Point them at TDL's HR recipient, build the three funnels, set an alert on
+the talent-pool conversion rate, and leave it for a month.
+
+This section is here so the option can be pitched, not because it should be built now.
+
+### What the built-in digest does and does not do
+
+| | PostHog's built-in digest | A written digest we build |
+|---|---|---|
+| Effort and cost | None. A setting | ~1 day, plus a running cost |
+| Format | PostHog's own layout and vocabulary — "insights", "cohorts", "trends" | Six or seven plain sentences in TDL's language |
+| Content | Whatever changed across the project, chosen by PostHog | Only the two funnels, only what a recruiter or an HR director can act on |
+| Judgement | Reports movement | Can say *which field* lost the most people this week and whether that is worse than last week |
+| Audience | Someone who knows the tool | Someone who has never opened it and never will |
+| Access | The recipient needs a PostHog seat to follow a link | Plain email, no account, no login |
+
+That last row is the real argument. If the people who should read this are TDL's HR team rather than whoever
+administers the analytics account, a digest that requires a seat to act on is a digest that gets forwarded and
+then ignored.
+
+### What it would be
+
+- **Vercel Cron** (`vercel.json`; 100 jobs per project on every plan, UTC only) calling a route guarded by
+  `CRON_SECRET`, at `0 6 * * 1` — Monday 06:00 UTC, 07:00 Lagos.
+- The route runs **aggregate queries only** over the previous seven days: sessions per funnel, conversion rate
+  and drop-off per step, the worst three fields by abandonment, and the same four figures for the week before
+  so the summary can say "better" or "worse" rather than just a number.
+- An LLM writes six or seven sentences from those numbers. **Provider by environment variable**
+  (`LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`) so DeepSeek, Anthropic or another can be swapped without code.
+- Email through whatever service TDL already uses; if none, Resend.
+
+### The hard rule, and how it is enforced
+
+No personal data, no session content, and no free text from any form may reach the LLM or the email. Enforced in
+code, in three places, not asserted in a comment:
+
+1. A **zod schema whose leaves are numbers, ISO dates and a closed enum of step and field names** — `email` as
+   an identifier, never as a value. Anything else fails the parse and the job aborts.
+2. An **`assertAggregateOnly()` pass** over the serialised payload that throws on any `@`, any run of seven or
+   more digits, any string longer than 40 characters, and any key outside the schema's allow-list. The schema
+   protects the shape; this protects against a shape that is legal but carries a smuggled string.
+3. The route **never calls a session-level or person-level endpoint** — only aggregate funnel and trend
+   queries. This is a static check in `scripts/check-adapter.mjs`, extended to the analytics module, so it
+   fails the build rather than being noticed in review.
+
+Unit tests assert that a payload containing an email address, a phone number or a sentence of free text is
+rejected. Those tests are the specification.
+
+### Running cost, honestly
+
+The LLM call is one request a week against a payload of a few dozen numbers: **cents per month on any provider**,
+and it would stay in that range even at ten times TDL's traffic. The email service is free at this volume on
+every major provider's entry tier. PostHog itself stays on its free allowance (1M events and 5,000 replays a
+month; TDL will not approach either). So the running cost is negligible — but it is three vendors instead of
+one, three places for a key to leak, and one more thing to maintain, which is the actual price and the reason
+this is a decision rather than a default. Q30 asks TDL to approve it.
+
+### Recommendation
+
+Run phase one for a month. If the built-in digest is being read and acted on, stop there. Build this only if
+TDL says the built-in one is going unread *because* of how it reads — which is a real and common answer, and
+the only one that justifies the extra vendor.

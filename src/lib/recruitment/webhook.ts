@@ -20,6 +20,11 @@ export const webhookProvider: RecruitmentProvider = {
   },
   capabilities: { listOpenings: false, createCandidate: true, addNote: false },
 
+  /** No handoff mechanism: a webhook endpoint takes no candidates through a link. */
+  handoffUrl(url: string): string {
+    return url;
+  },
+
   async listOpenings(): Promise<ProviderResult<Opening[]>> {
     return unsupported("a webhook endpoint has no openings to list");
   },
