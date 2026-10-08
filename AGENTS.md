@@ -133,6 +133,31 @@ Plain verbs, sentence case, active voice. A CTA says what happens: `Become a cli
 
 Do one milestone at a time (brief §12) and stop for review. Screenshot and critique your own work against the brief before moving on. Don't scaffold seven service pages before the home page is right. Record design decisions and their reasoning in `docs/DESIGN-DECISIONS.md`.
 
+**Plan first for anything new or ambiguous.** For a new feature, or a request that could reasonably be read more than one way, send a short plan — what you will build, what you will not, and any decision that is the owner's — and wait for approval before writing code. A clearly specified change to existing work does not need one.
+
+## Testing policy
+
+The full suite takes about an hour. Run the smallest tier that covers the change, and **say which tier you ran in every report**. Each tier includes the ones below it. Scripts are in `scripts/verify.sh`.
+
+| Tier | When | Command | Runs |
+|---|---|---|---|
+| **1** | Every change. The default for small changes | `npm run check` | Lint (0 errors), typecheck, boundary check — **plus only the tests covering what you touched** |
+| **2** | End of a feature, or before a push to GitHub/Vercel | `npm run verify` | Tier 1 + production build, scroll regression, first-load JS on every route |
+| **3** | Before a client demo or launch, or when the owner asks | `npm run verify:full` | Everything: axe on every route at 1280 and 390, keyboard, reduced motion, redirects, sitemap, JSON-LD, Lighthouse (one route per template), throttled-mobile probe, enquiry form, consent banner, canary masking test, recruitment adapter, placeholder guard |
+
+**Don't rerun suites unrelated to the change.** The boundary check is in Tier 1 because it is static, takes under a second, and guards rules that must never regress silently (no ATS wiring outside the adapter, no candidate storage, nobody identified, replay masking in force). Beyond that, pick targeted tests by what the change touches:
+
+| If you touched | Also run in Tier 1 |
+|---|---|
+| `src/lib/recruitment/`, careers action | `npm run test:provider` |
+| Analytics, consent banner, either form's instrumentation | `npm run test:masking` and `npm run test:consent` (both need an analytics-on build — see `scripts/verify.sh` Tier 3 for the exact setup) |
+| `next.config.ts` placeholder guard, photo frames | `npm run test:guard` |
+| The enquiry form | `npm run test:form` |
+| Layout, routing, anything that changes page height | `npm run test:scroll` |
+| Copy or styles only | nothing beyond `npm run check` |
+
+**A new test is not trusted until it has been seen to fail.** Break the thing it guards, confirm it reports the failure, restore. Three tests on this project passed while proving nothing before this rule existed (`docs/DESIGN-DECISIONS.md`, 2026-09-30 and 2026-10-08).
+
 ## Git
 
 - One commit per milestone, made before reporting, with the hash in the report. Conventional commits (`feat:`, `fix:`, `docs:`, `chore:`).

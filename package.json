@@ -9,6 +9,9 @@
     "lint": "eslint",
     "analyze": "cross-env ANALYZE=true next build",
     "typecheck": "tsc --noEmit",
+    "check": "bash scripts/verify.sh 1",
+    "verify": "bash scripts/verify.sh 2",
+    "verify:full": "bash scripts/verify.sh 3",
     "first-load": "node scripts/first-load.mjs",
     "test:scroll": "bash scripts/serve-and-run.sh python scripts/scroll-proof.py",
     "test:form": "bash scripts/serve-and-run.sh python scripts/form-proof.py docs/screenshots",
@@ -17,7 +20,8 @@
     "check:adapter": "node scripts/check-adapter.mjs",
     "test:provider": "node --experimental-strip-types --no-warnings scripts/provider-proof.mjs",
     "test:consent": "bash scripts/serve-and-run.sh python scripts/consent-proof.py docs/screenshots",
-    "test:masking": "bash scripts/serve-and-run.sh python scripts/masking-proof.py"
+    "test:masking": "bash scripts/serve-and-run.sh python scripts/masking-proof.py",
+    "test:guard": "bash scripts/placeholder-guard-proof.sh"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

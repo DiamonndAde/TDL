@@ -68,23 +68,35 @@ Completed at milestone 9. Sections are added as milestones close; the content th
 
 ## Checking it still holds
 
-Four scripts, each exits non-zero on failure. Run them against a production build before any deploy that touches
-layout, routing or the form:
+Three commands, one per tier of the testing policy in `AGENTS.md`. Each includes the tiers below it, exits
+non-zero if anything failed, prints a summary of every step with its time, and leaves `.next` as the shipping
+build (analytics off, placeholders off) whatever it ran — so `npm start` afterwards never serves a test setup.
 
 ```powershell
-$env:PLACEHOLDER_IMAGES = "false"; npm run build
-npm run check:adapter  # nothing outside src/lib/recruitment is wired to an ATS; no candidate data stored
-npm run test:provider  # every adapter branch against a stub API (no credentials, no network)
-npm run test:harden    # redirects, sitemap, robots, JSON-LD, axe, keyboard, reduced motion
-npm run test:android   # applied 4x CPU + slow 4G: LCP, CLS, interaction latency, scroll-fling
-npm run test:scroll    # scroll position after client-side navigation
-node scripts/first-load.mjs / /careers /become-a-client
+npm run check         # Tier 1, ~1 min: lint, typecheck, boundary check. Every change.
+npm run verify        # Tier 2, ~8 min: + production build, scroll regression, first-load JS. Before a push.
+npm run verify:full   # Tier 3, ~45-60 min: everything. Before a client demo or launch.
 ```
 
-Lighthouse: `bash scripts/serve-and-run.sh bash scripts/lh-clean.sh <outdir> simulate _ become-a-client`. It kills
-Chrome between runs — headless instances leak on Windows and inflate TBT by several seconds, which has twice sent
-a session chasing a regression that was not there. Prefer `scripts/android-probe.py` for the numbers that decide
-anything; the simulated Lighthouse figure is recorded, not targeted (`docs/DESIGN-DECISIONS.md`, 2026-09-29).
+No environment setup is needed: the scripts set `PLACEHOLDER_IMAGES=false` themselves (your `.env.local` turns
+it on for presentations) and build the analytics-on configuration they need for the consent and canary tests
+against a local PostHog stand-in, so nothing reaches PostHog.
+
+Individual suites, for a change that touches one area — `AGENTS.md` lists which to run when:
+
+```powershell
+npm run test:provider  # recruitment adapter, every branch against a stub (no credentials, no network)
+npm run test:guard     # placeholder guard under eight environments, and no stock in the shipping HTML
+npm run test:scroll    # scroll position after client-side navigation
+npm run test:form      # the three-step enquiry form
+npm run test:harden    # axe, keyboard, reduced motion, redirects, sitemap, JSON-LD
+npm run test:android   # applied 4x CPU + slow 4G: LCP, CLS, interaction latency, scroll-fling
+```
+
+Lighthouse in Tier 3 kills Chrome between runs — headless instances leak on Windows and inflate TBT by several
+seconds, which has twice sent a session chasing a regression that was not there. It gates only on accessibility
+(100) and CLS; the simulated LCP is recorded, not targeted (`docs/DESIGN-DECISIONS.md`, 2026-09-29). The LCP
+requirement is gated by the throttled-mobile probe, which uses applied throttling.
 
 ## Content lives in `src/content/`
 
