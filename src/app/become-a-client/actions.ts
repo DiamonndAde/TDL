@@ -3,7 +3,14 @@
 import { parseEnquiry, type Enquiry } from "@/components/enquiry/schema";
 import { serviceBySlug } from "@/content/services";
 
-export type SubmitResult = { ok: true } | { ok: false; error: string };
+import type { FailureReason } from "@/lib/analytics/events";
+
+/**
+ * `reason` is for the analytics event, `error` for the visitor. They are separate on purpose: the sentence
+ * shown on screen may be reworded at any time, and nothing should start string-matching it to classify a
+ * failure (docs/ANALYTICS-PROPOSAL.md §8).
+ */
+export type SubmitResult = { ok: true } | { ok: false; error: string; reason: FailureReason };
 
 /**
  * Server action for the qualification form. Validates the whole submission again server-side, then delivers it.
@@ -14,7 +21,7 @@ export type SubmitResult = { ok: true } | { ok: false; error: string };
  */
 export async function submitEnquiry(data: Enquiry): Promise<SubmitResult> {
   const parsed = parseEnquiry(data);
-  if (!parsed.success) return { ok: false, error: "Some answers need attention. Check the steps and try again." };
+  if (!parsed.success) return { ok: false, error: "Some answers need attention. Check the steps and try again.", reason: "validation" };
   if (parsed.data.website) return { ok: true }; // honeypot filled: pretend success, deliver nothing
 
   const payload = {
@@ -46,12 +53,12 @@ export async function submitEnquiry(data: Enquiry): Promise<SubmitResult> {
       if (!res.ok) throw new Error(`webhook ${res.status}`);
       return { ok: true };
     } catch {
-      return { ok: false, error: "We could not send this just now. Try again, or reach us on WhatsApp or by phone." };
+      return { ok: false, error: "We could not send this just now. Try again, or reach us on WhatsApp or by phone.", reason: "delivery" };
     }
   }
   if (process.env.NODE_ENV !== "production") {
     console.log("[enquiry] no FORM_WEBHOOK_URL set; would deliver:", JSON.stringify(payload, null, 2));
     return { ok: true };
   }
-  return { ok: false, error: "The form is not connected yet. Reach us on WhatsApp or by phone and we will pick it up." };
+  return { ok: false, error: "The form is not connected yet. Reach us on WhatsApp or by phone and we will pick it up.", reason: "unconfigured" };
 }

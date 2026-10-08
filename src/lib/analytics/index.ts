@@ -25,6 +25,19 @@ export const discardPending = detachSink;
 export const analyticsReady = () => client !== null;
 
 /**
+ * A feature-flag value, or `undefined` when flags are off, the SDK is not running, or PostHog has not answered
+ * yet. Used by `experiment.ts`; callers treat `undefined` as "show the control".
+ */
+export function getFeatureFlag(key: string): string | boolean | undefined {
+  if (!client || !analyticsConfig.experimentsEnabled) return undefined;
+  try {
+    return client.getFeatureFlag(key);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Loads and starts PostHog. Called by `AnalyticsProvider` only after (a) a key exists, (b) consent is granted,
  * and (c) the first paint has happened — so the SDK never competes with the page for the main thread or the
  * connection. Idempotent.
@@ -52,13 +65,23 @@ async function load(): Promise<PostHog | null> {
       // Pageviews are sent by the provider on navigation, so the SDK's own history hooks stay off.
       capture_pageview: false,
       capture_pageleave: true,
-      // Nobody is identified: this site has no accounts, and a person profile per visitor is data we do not
-      // need and would have to defend.
+      // **Nobody is ever identified.** This site has no accounts; a person profile per visitor is data we do
+      // not need and would have to defend, and on a careers page it would be a profile of a job applicant.
+      // `identify()` is never called anywhere — `scripts/check-adapter.mjs` fails the build if it appears.
       person_profiles: "never",
       // Replay is started per session by `maybeRecord`, never automatically.
       disable_session_recording: true,
-      disable_surveys: true,
+      disable_surveys: !analyticsConfig.surveysEnabled,
+      // Do NOT set `advanced_disable_flags` to save the flags request while the experiment is off. It also
+      // stops the remote config that switches session recording on, so replay silently records nothing —
+      // caught by the canary test (scripts/masking-proof.py asserts a replay payload exists). With experiments
+      // off, `useCtaVariant()` never reads a flag, so the request is the only cost.
       autocapture: true,
+      // Exception autocapture stays OFF deliberately. An unhandled error's message and stack can contain
+      // whatever was being processed when it threw, which on these two routes means form values. Submission
+      // failures are reported instead as the typed events in `events.ts`, whose reasons are a closed list
+      // (docs/ANALYTICS-PROPOSAL.md §8).
+      capture_exceptions: false,
       // --- masking (docs/ANALYTICS-PROPOSAL.md §5) ---------------------------------------------------------
       // Autocapture must not read the text of anything it captures a click on.
       mask_all_text: true,

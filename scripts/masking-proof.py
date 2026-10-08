@@ -126,6 +126,17 @@ with sync_playwright() as p:
     pg.locator("input[type=checkbox]").last.check()
     pg.wait_for_timeout(6000)
 
+    # --- the error path ----------------------------------------------------------------------------------
+    # A failed submission is the most dangerous moment for a leak: whatever was being processed when it failed
+    # is in scope. Submit the fully-filled form with the server action cut off, so the failure path runs with
+    # every canary present. Exception autocapture is off and the failure event's reason is a closed enum, so
+    # none of the applicant's answers should appear — this proves that rather than asserting it.
+    print("\nFailed submission (/careers, server action cut off)")
+    pg.route(f"{BASE}/careers", lambda route: route.abort() if route.request.method == "POST" else route.fallback())
+    pg.get_by_role("button", name=re.compile("join the talent pool", re.I)).click()
+    pg.wait_for_timeout(5000)
+    pg.unroute(f"{BASE}/careers")
+
     print("\nEnquiry (/become-a-client)")
     pg.goto(f"{BASE}/become-a-client")
     pg.wait_for_load_state("load")
@@ -155,12 +166,17 @@ with sync_playwright() as p:
 blob = CAPTURE.read_bytes() if CAPTURE.exists() else b""
 pairs = list(requests_from(blob))
 events = [u for u, _ in pairs if "/e/" in u or "/i/v0/e" in u]
+# The failure path must actually have run, or its half of the scan proves nothing.
+failure_seen = any(b"talent_pool_failed" in body or b"talent_pool_failed" in next(iter(decodings(body)), b"")
+                   for _, body in pairs) or any("talent_pool_failed" in d.decode("utf-8", "ignore")
+                   for _, body in pairs for d in decodings(body))
 replay = [u for u, _ in pairs if u.split("?")[0].endswith("/s/")]
 
 print(f"\nPayloads captured: {len(pairs)} ({len(blob)} bytes)")
 check(len(pairs) > 0, "the SDK sent something (otherwise this proves nothing)", str(len(pairs)))
 check(bool(events), "the event stream was produced and inspected", f"{len(events)} event payloads")
 check(bool(replay), "the session replay stream was produced and inspected", f"{len(replay)} replay payloads")
+check(failure_seen, "the failed-submission path ran and its event was inspected", "talent_pool_failed present")
 check(CANARIES["name"] in typed, "control: the canary was genuinely typed into the form", typed[:40])
 
 hits = []

@@ -23,11 +23,35 @@ export const analyticsConfig = {
    */
   replayRoutes: ["/careers", ...(process.env.NEXT_PUBLIC_ANALYTICS_REPLAY_ENQUIRY === "true" ? ["/become-a-client"] : [])],
   /**
-   * Fraction of sessions on a replay route that are actually recorded. Default 0.25 — see
-   * `docs/ANALYTICS-PROPOSAL.md` §2 for why a quarter: replay is for diagnosis, not measurement, and nobody
-   * watches more than a few dozen. Raise it temporarily to investigate a specific problem, then put it back.
+   * Fraction of sessions on a replay route that are actually recorded. **Default 0.05**, sized against a viral
+   * job posting rather than against normal traffic:
+   *
+   *   free allowance            5,000 recordings per month
+   *   a viral week             20,000 careers visitors
+   *   at 5%                     1,000 recordings — 20% of the month's allowance
+   *   a whole viral month      80,000 visitors → 4,000 recordings, still inside the allowance
+   *
+   * At 25% that same week would produce 5,000 recordings and exhaust the month on its own; with the billing
+   * limits set to zero (HANDOFF.md) PostHog then stops ingesting replay and **that data is lost for good**, so
+   * the quota would be spent on whoever arrived first rather than on a representative sample. Five per cent
+   * survives the spike and still yields more recordings than anyone will watch.
+   *
+   * Raise it deliberately for a quiet investigation window — at a few hundred sessions a month, 25% is about
+   * 75 recordings — and put it back afterwards. Check the arithmetic above against current traffic first.
    */
-  replaySampleRate: clampRate(process.env.NEXT_PUBLIC_ANALYTICS_REPLAY_SAMPLE, 0.25),
+  replaySampleRate: clampRate(process.env.NEXT_PUBLIC_ANALYTICS_REPLAY_SAMPLE, 0.05),
+  /**
+   * Surveys. Built and wired, switched off: the careers survey ("Did you find a role that fits you?") is
+   * defined in the PostHog project, and this flag decides whether the SDK loads the surveys script at all.
+   * TDL turns it on when they are ready (`docs/ANALYTICS-PROPOSAL.md` §9).
+   */
+  surveysEnabled: process.env.NEXT_PUBLIC_ANALYTICS_SURVEYS === "true",
+  /**
+   * Experiments (feature flags). Off by default: `useCtaVariant()` then always returns the control and never
+   * reads a flag, so the careers CTA reads exactly as it does today. It does not stop the SDK's flags request —
+   * see the note in `index.ts` on why `advanced_disable_flags` must stay unset.
+   */
+  experimentsEnabled: process.env.NEXT_PUBLIC_ANALYTICS_EXPERIMENTS === "true",
 } as const;
 
 function clampRate(raw: string | undefined, fallback: number): number {

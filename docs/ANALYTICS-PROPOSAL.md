@@ -97,9 +97,9 @@ Zoho Recruit has a `Source` field on candidate records and its career site URLs 
 
 Nothing loads before consent. The order is: first paint → banner → visitor accepts → script fetched.
 
-- **Our own design**: a bottom-anchored bar on `--ink`, Archivo, the two buttons at equal weight ("Accept", "Decline") because a dark-patterned decline is both wrong and, in the EEA, non-compliant. No cookie-icon, no pre-ticked anything, and it does not block the page.
+- **Our own design**: a bottom-anchored bar on `--ink`, Archivo, the two buttons ("Accept", "Reject") visually identical apart from the word, because a dark-patterned refusal is both wrong and, in the EEA, non-compliant. No cookie-icon, no pre-ticked anything, and it does not block the page.
 - The choice is stored in `localStorage`, not a cookie, so declining sets nothing.
-- Declining is durable and re-offerable: a "Cookies" link in the footer reopens the choice.
+- Declining is durable and re-offerable: "Analytics choice" in the footer reopens it.
 - **`/privacy-policy` and `/cookies-policy` both need a new section** before this ships. Drafted below for Q25 legal review, **not published**.
 - This is the first non-essential script on the site, so it also activates the consent gate the brief requires (§10) and `HANDOFF.md` item 5.
 
@@ -109,13 +109,21 @@ Nothing loads before consent. The order is: first paint → banner → visitor a
 >
 > We do not send the contents of any form field to this service. What you type into a form is masked in your browser before anything is transmitted, and is never recorded. We do not use this service to identify you, and we do not combine it with the details you submit to us.
 >
-> Analytics runs only if you accept it. If you decline, nothing is loaded and nothing is collected, and you can change your choice at any time using the Cookies link in the footer. Data is processed on our behalf under a data processing agreement and held in the [region] region. You have the rights set out in this notice, including the right to object, under the Nigeria Data Protection Regulation.
+> Analytics runs only if you accept it. If you decline, nothing is loaded and nothing is collected, and you can change your choice at any time using "Analytics choice" in the footer.
+>
+> **Where this data goes.** Analytics data leaves Nigeria. It is processed on our behalf by PostHog Inc. under a data processing agreement and stored in PostHog's European Union region, in Frankfurt, Germany, on Amazon Web Services infrastructure. PostHog's other subprocessors for this service are listed at posthog.com/subprocessors. [If PostHog AI is enabled — see the note below — add: "When we use PostHog's built-in assistant to ask questions about these statistics, the data it reads is passed to Anthropic, OpenAI and Google as PostHog's subprocessors, in the United States, under the same agreement; they may not use it to train their models."]
+>
+> We keep a recording of how a small, random share of visitors use the careers page, so that we can see where the page is hard to use. These recordings never contain what you type: every form field and all page text is masked in your browser before anything is sent. If a submission fails, we record only that it failed and the general reason — for example, that our server could not be reached — never what you had entered.
+>
+> We do not identify you, we do not create a profile of you, and we do not combine this information with the details you submit to us. You have the rights set out in this notice, including the right to object, under the Nigeria Data Protection Regulation.
+
+**Notes for the reviewer.** (1) The transfer outside Nigeria is the material point: the NDPR permits it to a jurisdiction with adequate protection or under appropriate safeguards, and the reviewer should confirm the DPA and the EU region satisfy that. (2) The bracketed PostHog AI sentence applies only if TDL enables that feature (§10); it adds three US subprocessors. (3) "A small, random share" is 5% of careers visitors (§7) — state the figure if the reviewer prefers precision to plain language.
 
 ---
 
 ## 5. Masking, and how it gets verified
 
-Configuration: `maskAllInputs: true` (PostHog's default, stated explicitly anyway), `maskTextSelector: "*"` so all text starts masked and is unmasked only where deliberately chosen, and `ph-no-capture` on both form containers so replay shows a blank block of the right size rather than the form's content. PostHog applies masking in the browser; masked content is never transmitted.
+Configuration as built: `maskAllInputs: true` (PostHog's default, stated explicitly anyway), `maskTextSelector: "*"` so all text is masked and nothing is deliberately unmasked, and `mask_all_text: true` so autocapture cannot read the text of what it records a click on. PostHog applies masking in the browser; masked content is never transmitted. (`ph-no-capture` on the form containers, proposed here originally, was not needed: with every input and every text node masked, the replay shows the form's layout and nothing in it, which is more useful for diagnosing drop-off than a blank block.)
 
 **Verification is a recorded test session, not a reading of the config.** The test: fill both forms end to end with marked canary values — an email, a phone number, a name and a sentence of free text, each containing a unique token. Then, from the PostHog UI, open the resulting replay and confirm visually that every field renders masked; and separately, query the captured events and the replay's own export for each canary token, which must return nothing. Both halves matter: the visual check catches a field rendering in clear, the token search catches a value that was transmitted but not displayed. This would be scripted as `scripts/masking-proof.py` and run on every change to a form, in the same style as the existing proofs. **If the token search returns anything at all, analytics does not ship.**
 
@@ -149,7 +157,177 @@ No personal data, no session content, no free text from any form may reach the L
 
 ---
 
-## 7. What TDL needs to decide
+## 7. Viral-posting guard: replay at 5%
+
+A popular job posting can send tens of thousands of people to `/careers` in a few days. Replay is the product
+with a hard monthly allowance — 5,000 recordings on the free plan — and with the billing limits at zero (§11),
+a spent allowance does not cost money: **PostHog stops ingesting replay for the rest of the month and that data
+is lost for good.** So the risk is not a bill; it is that one viral week spends the month's recordings on whoever
+happened to arrive first, and replay is dark when it is next needed.
+
+| | Visitors | at 25% (old default) | **at 5% (new default)** |
+|---|---|---|---|
+| A viral week | 20,000 | 5,000 — the whole month, gone | **1,000 — 20% of the month** |
+| A whole viral month | 80,000 | 20,000 — four times the allowance | **4,000 — inside the allowance** |
+| A normal month (a few hundred) | ~300 | ~75 | ~15 |
+
+**Five per cent survives 20,000 visitors in a week, and survives four such weeks back to back.** The cost is the
+bottom row: in an ordinary month 5% yields around fifteen recordings. That is enough to see a pattern and not
+enough to study one, which is why the rate is an environment variable
+(`NEXT_PUBLIC_ANALYTICS_REPLAY_SAMPLE`): raise it to 0.25 for a deliberate investigation in a quiet fortnight,
+check the arithmetic above against current traffic, and put it back.
+
+The other guards were already in place and still hold: replay is **URL-scoped** to `/careers` (and
+`/become-a-client` only if Q30d approves it), never the home route, so a viral posting's visitors who land
+elsewhere cost nothing; the sampling draw is made once per session so the 5% are whole sessions, not fragments;
+and nobody is identified (`person_profiles: "never"`, no `identify()` anywhere — `scripts/check-adapter.mjs`
+fails the build on either, and was shown to catch `client?.identify(...)` and `posthog.setPersonProperties(...)`
+before being trusted).
+
+Funnels and events are unaffected by any of this. The free allowance for events is 1,000,000 a month; a viral
+week of 20,000 visitors producing perhaps 15 events each is 300,000. Measurement does not need a guard; only
+replay does.
+
+## 8. Error tracking on the two forms
+
+TDL needs to know when a submission fails. Both forms now send a failure event — `talent_pool_failed` and
+`enquiry_failed` — whose only property is a **reason from a closed list**: `delivery` (the ATS or webhook
+refused), `unconfigured` (nothing is wired up to receive it — a deployment mistake, and the loudest one),
+`validation` (the server disagreed with the browser), `network` (the request never completed).
+
+**PostHog's exception autocapture is deliberately left off** (`capture_exceptions: false`, enforced by the
+boundary check). An unhandled error's message and stack carry whatever was being processed when it threw, and
+on these two routes that is an applicant's answers. A fixed vocabulary tells TDL that submissions are failing and
+which way, and can contain nothing else by construction. The server actions now return the reason alongside the
+visitor-facing sentence, so nothing has to string-match the message to classify it — the first version did, and
+would have misfiled failures the moment the wording changed.
+
+**The canary test found two real bugs here, both now fixed:**
+
+1. **A network failure was invisible.** When the server action cannot be reached it throws rather than returning
+   `{ok: false}`. Nothing caught it: the visitor was left looking at "Sending" with no message, and no failure
+   event fired, so TDL would never have heard of it. Both forms now catch it, tell the visitor "We could not
+   reach our server. Check your connection and try again.", reset the button, and report `network`.
+2. **An attempt to save a request silently killed replay.** Setting `advanced_disable_flags` while the experiment
+   is off — to avoid one flags request per page — also disables the remote config that switches recording on.
+   Replay recorded nothing, with no error anywhere. Removed; the comment where it was says why.
+
+**Verified with the canary test**, which now submits the fully-filled talent-pool form with the server action
+cut off, so the failure path runs with every canary present: **15 payloads, 66,597 bytes — 12 event payloads
+and 3 replay payloads — the `talent_pool_failed` event present, and no canary token under any decoding.** The
+test fails if the failure event is absent, so it cannot pass by never reaching the error path.
+
+## 9. Prepared and switched off: the careers survey and the CTA experiment
+
+Both are wired and both are off. TDL switches each on with one environment variable and a few minutes in the
+PostHog project; no code changes.
+
+### Survey — "Did you find a role that fits you?"
+
+The SDK only loads the surveys script when `NEXT_PUBLIC_ANALYTICS_SURVEYS=true`; today it is `disable_surveys:
+true`. The survey itself lives in PostHog, so this is its exact definition, to create when TDL is ready:
+
+| Setting | Value |
+|---|---|
+| Type | Popover |
+| Question | Did you find a role that fits you? |
+| Answers | Single choice: *Yes* / *Not yet* / *I wasn't looking for one* |
+| Follow-up (only after *Not yet*) | Optional open text: "What kind of role were you hoping to find?" |
+| Shown on | URL contains `/careers` |
+| When | After 30 seconds on the page, or on scroll past 50% — not on arrival |
+| How often | Once per visitor; never again after an answer or a dismissal |
+| Appearance | Background `#0F1B2D`, text `#FAFAF8`, button `#FAFAF8` on `#0F1B2D`, no PostHog branding, Archivo |
+
+Two cautions for whoever creates it. **The open-text follow-up is free text**, the one place on the site where a
+visitor's own words are deliberately collected by the analytics vendor rather than by TDL's ATS — the privacy
+notice must say so before it is switched on, and it should be left out if TDL would rather not hold it. And
+PostHog renders the popover in its own markup: the colours above bring it close to the site, not identical, and
+it should be screenshotted against the design before going live. The free allowance is 1,500 responses a month.
+
+### Experiment — the careers call-to-action
+
+`useCtaVariant()` returns the button's wording. With `NEXT_PUBLIC_ANALYTICS_EXPERIMENTS` unset it **always
+returns the control** — "See current openings", exactly as today — and never reads a flag. Switched on, it reads
+the PostHog flag `careers-cta` and maps the variant to one of three labels:
+
+| Variant | Label | Hypothesis |
+|---|---|---|
+| `control` | See current openings | — |
+| `roles` | See open roles | Names the thing offered, not the act of looking |
+| `apply` | Find a role and apply | Names the outcome the visitor wants |
+
+The variant is attached to the `openings_clicked` event, so the result can be read from the funnel as well as
+from PostHog's experiment view. The success metric is click-through on that button. The design rules:
+
+- **No flicker.** The control is server-rendered and stays put unless a known variant arrives within four
+  seconds; a slow or missing flag means the visitor simply sees today's button. A call-to-action that changes
+  under the reader is worse than no experiment.
+- **Unknown variants are ignored**, so a typo in the PostHog dashboard cannot put an arbitrary string on the
+  page.
+- **Variant names live in the event contract** (`CtaVariantName` in `events.ts`) and the label map is typed
+  against it, so the two cannot drift.
+
+To switch on: create a multivariate flag `careers-cta` with variants `control`, `roles`, `apply` at a third
+each, create an experiment on it with `openings_clicked` as the goal, then set the environment variable and
+redeploy. Run it until PostHog reports significance — at a few hundred careers visitors a month that is likely
+to be months, not weeks, which is worth knowing before starting. Flags are free up to 1,000,000 requests a month.
+
+## 10. PostHog AI: phase one of the AI digest
+
+**Yes, with one decision attached.** PostHog's built-in assistant answers plain-English questions about the
+project's data — "where do people drop off on the careers form this week?", "is the talent-pool conversion rate
+lower than last month?" — by building the funnel or trend query itself and explaining the result. That is the
+core of what the phase-two digest would do, available now with no code.
+
+Availability and cost: PostHog's documentation describes the capability but not the plan rules; secondary
+sources consistently report **2,000 free AI credits a month on every plan, including free, then $0.01 a credit**.
+With the AI billing limit at zero (§11) the assistant cannot cost money — it stops at the allowance. Confirm the
+credit figure in the billing page when the project is created.
+
+**The decision: PostHog AI sends the data it reads to third parties.** PostHog's own AI FAQ states that PostHog
+AI runs on third-party providers and that messages and all data the assistant accesses pass through them;
+PostHog lists **Anthropic, OpenAI and Alphabet** as subprocessors for it, plus Azure for semantic search. The DPA
+forbids them from training on it. Two consequences:
+
+- It is **off until an organisation administrator approves AI features** — PostHog will not send anything to an
+  AI provider without that. So it is not on by accident, and turning it on is a deliberate act.
+- If TDL turns it on, **the privacy notice gains the bracketed sentence in §4**, because the data now reaches
+  three more companies in the United States. Also switch off "Enable AI training on anonymized data" in the
+  organisation settings, which is a separate PostHog setting from the subprocessors' own training ban.
+
+So the AI digest now has three phases, each optional and each cheaper than the next:
+
+| Phase | What | Cost | Data leaves to |
+|---|---|---|---|
+| **1a** | PostHog's own weekly digest and alerts | Free, no code | PostHog only |
+| **1b** | PostHog AI, asked by someone at TDL in the dashboard | Free up to the credit allowance; capped at zero | + Anthropic, OpenAI, Google |
+| **2** | Our cron job writing a plain-English email to HR (below) | ~1 day to build; cents a month | + one LLM of TDL's choosing, aggregates only |
+
+The honest difference between 1b and 2: PostHog AI answers whoever asks, inside the tool, and needs a PostHog
+seat. Phase two delivers an answer nobody asked for, to an inbox, to people who will never log in. If TDL's HR
+team is the audience, that difference is the whole case for building it.
+
+## 11. Billing limits at zero, on every product
+
+**This is a setting in the PostHog organisation, and it cannot be done from the codebase.** No PostHog project
+exists yet; whoever creates it must set it before the key is ever deployed. It is item 1 of the analytics block
+in `HANDOFF.md`'s launch checklist.
+
+What PostHog's billing documentation confirms: limits are set **per product**, in the organisation's billing
+settings; once a limit is reached **PostHog stops ingesting and processing that product's data so you are not
+charged over it, and the excess data is lost for good**; and alert emails go to the organisation owner at **80%
+and 100%** of each limit — the same alerts fire for the free allowance. Secondary sources state explicitly that
+**$0 is a valid limit**; confirm that in the billing page.
+
+Set a $0 limit on every product: product analytics, session replay, feature flags, surveys, error tracking,
+PostHog AI, and any product added later. The effect is that the free allowance becomes a ceiling rather than a
+starting point — nothing can be billed, and the 80% email is the signal to look at the sample rate before the
+ceiling is hit. Combined with §7, a viral posting degrades replay gracefully rather than either spending money or
+switching replay off mid-month.
+
+---
+
+## 12. What TDL needs to decide
 
 Added to `docs/CLIENT-QUESTIONS.md` as Q30, and one part appended to Q29:
 
@@ -158,7 +336,7 @@ Added to `docs/CLIENT-QUESTIONS.md` as Q30, and one part appended to Q29:
 
 ---
 
-## 8. If approved, the build order
+## 13. If approved, the build order
 
 1. Consent banner and the two policy sections (Q25 sign-off first — the notice must be live before anything collects).
 2. `src/lib/analytics/` with the no-op default, and the adapter member for the ATS handoff URL.

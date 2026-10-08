@@ -7,7 +7,13 @@
    Set `ZOHO_RECRUIT_CLIENT_ID`, `ZOHO_RECRUIT_CLIENT_SECRET` and `ZOHO_RECRUIT_REFRESH_TOKEN` (Q29) and send one talent-pool submission from `/careers`: it must appear in Zoho Recruit → Candidates with a note titled "Talent pool submission from totaldatalimited.com". Until those three are set, talent-pool submissions go to the webhook instead — an inbox recruiters do not read, so somebody must own it.
 3. Resolve every open row in `docs/CLIENT-QUESTIONS.md` marked blocking: logo lockup set (Q16), client logos in SVG/high-res (Q17), reference and quote sign-off (Q21–Q24), legal review (Q25). `grep -rn "TODO(client)" src/` must return only rows the client has explicitly accepted as-is.
 4. Replace the empty photo frames with TDL's own photography (Q18, Q26, Q27) or accept them empty for launch — never stock.
-5. **Analytics is built but switched off.** No `NEXT_PUBLIC_POSTHOG_KEY` is set anywhere, so no banner shows, no SDK is downloaded and no request is made. Before ever setting it: TDL must approve Q30, the privacy and cookies notices must carry the new section (Q25 legal review, draft in `docs/ANALYTICS-PROPOSAL.md`), and the PostHog project must be created **in the EU cloud** — the region is fixed at creation and cannot be changed. Then run `npm run test:masking` against that build and confirm it reports no canary tokens.
+5. **Analytics is built but switched off.** Before the PostHog key is ever deployed, in this order:
+   - **Create the PostHog project in the EU cloud.** The region is fixed at creation and cannot be changed.
+   - **Set a $0 billing limit on every product** — Organisation settings → Billing: product analytics, session replay, feature flags, surveys, error tracking, PostHog AI. This cannot be done from the codebase. It turns the free allowances into ceilings: at a limit PostHog stops ingesting that product and the excess data is lost, so nothing can ever be billed. The owner gets an email at 80% and 100%; at 80% on replay, lower `NEXT_PUBLIC_ANALYTICS_REPLAY_SAMPLE` (`docs/ANALYTICS-PROPOSAL.md` §7, §11).
+   - **Leave AI features unapproved** unless TDL has answered Q30(f) yes, and in either case switch off "Enable AI training on anonymized data" in the organisation settings.
+   - Leave `NEXT_PUBLIC_ANALYTICS_SURVEYS` and `NEXT_PUBLIC_ANALYTICS_EXPERIMENTS` unset until Q30(g) and (h) are answered.
+
+   Today no `NEXT_PUBLIC_POSTHOG_KEY` is set anywhere, so no banner shows, no SDK is downloaded and no request is made. Before ever setting it, TDL must also have approved Q30 and the privacy and cookies notices must carry the new section (Q25 legal review, draft in `docs/ANALYTICS-PROPOSAL.md` §4). Then run `npm run test:masking` against that build and confirm it reports no canary tokens, the replay stream present, and the failed-submission event present.
 
 ## Running a client presentation with placeholder imagery (Windows PowerShell)
 

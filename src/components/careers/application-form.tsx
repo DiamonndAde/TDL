@@ -54,10 +54,18 @@ export function ApplicationForm() {
       onSubmit={handleSubmit(
         (d) =>
           startTransition(async () => {
-            const r = await submitApplication(d);
+            // A server action that cannot be reached throws rather than returning {ok:false}. Without this the
+            // visitor is left on "Sending" with no message and TDL never hears of it — caught by the canary
+            // test's failed-submission path. The reason is the enum value, never the error's own message.
+            let r: ApplyResult;
+            try {
+              r = await submitApplication(d);
+            } catch {
+              r = { ok: false, error: "We could not reach our server. Check your connection and try again.", reason: "network" };
+            }
             setResult(r);
             if (r.ok) track({ name: "talent_pool_submitted", fields_completed: countAnswered(d) });
-            else track({ name: "talent_pool_failed", reason: r.error.includes("not connected") ? "unconfigured" : "delivery" });
+            else track({ name: "talent_pool_failed", reason: r.reason });
           }),
         (errs) => {
           const first = FIELDS.find((f) => f in errs);

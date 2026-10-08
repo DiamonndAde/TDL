@@ -3,7 +3,13 @@
 import { parseApplication, type Application } from "@/components/careers/schema";
 import { getRecruitmentProvider, type CandidateDraft } from "@/lib/recruitment";
 
-export type ApplyResult = { ok: true } | { ok: false; error: string };
+import type { FailureReason } from "@/lib/analytics/events";
+
+/**
+ * `reason` is for the analytics event, `error` for the visitor. Separate on purpose: the sentence on screen may
+ * be reworded at any time, and nothing should string-match it to classify a failure.
+ */
+export type ApplyResult = { ok: true } | { ok: false; error: string; reason: FailureReason };
 
 /**
  * General application ("join the talent pool").
@@ -17,7 +23,7 @@ export type ApplyResult = { ok: true } | { ok: false; error: string };
  */
 export async function submitApplication(data: Application): Promise<ApplyResult> {
   const parsed = parseApplication(data);
-  if (!parsed.success) return { ok: false, error: "Some answers need attention. Check the form and try again." };
+  if (!parsed.success) return { ok: false, error: "Some answers need attention. Check the form and try again.", reason: "validation" };
   if (parsed.data.website) return { ok: true }; // honeypot
   const { name, email, phone, location, area, message } = parsed.data;
 
@@ -38,10 +44,10 @@ export async function submitApplication(data: Application): Promise<ApplyResult>
   if (!created.ok) {
     if (created.reason === "unconfigured") {
       console.error(`[application] ${provider.name} is not configured: ${created.detail ?? ""}`);
-      return { ok: false, error: "The form is not connected yet. Apply through the openings page instead." };
+      return { ok: false, error: "The form is not connected yet. Apply through the openings page instead.", reason: "unconfigured" };
     }
     console.error(`[application] ${provider.name} delivery failed: ${created.detail ?? ""}`);
-    return { ok: false, error: "We could not send this just now. Try again, or apply through the openings page." };
+    return { ok: false, error: "We could not send this just now. Try again, or apply through the openings page.", reason: "delivery" };
   }
 
   // The answers that have no field of their own go on as a note, so a renamed custom field cannot swallow them.

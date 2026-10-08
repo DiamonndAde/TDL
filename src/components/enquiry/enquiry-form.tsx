@@ -126,12 +126,22 @@ export function EnquiryForm() {
   };
   const onSubmit = (data: Enquiry) => {
     startTransition(async () => {
-      const r = await submitEnquiry(data);
+      // An unreachable server action throws instead of returning {ok:false}; without this the visitor sees
+      // nothing and the failure is never reported. The reason is the enum value, never the error's message.
+      let r: SubmitResult;
+      try {
+        r = await submitEnquiry(data);
+      } catch {
+        r = { ok: false, error: "We could not reach our server. Check your connection, or reach us on WhatsApp or by phone.", reason: "network" };
+      }
       setResult(r);
       if (r.ok) {
         // Counts and the band they chose, which is already a bucket. Nothing they typed.
         track({ name: "enquiry_submitted", services_count: data.services.length, headcount_band: data.headcount });
         window.scrollTo({ top: 0, behavior: "auto" });
+      } else {
+        // So TDL can see that submissions are failing, and which way, without any of the answers.
+        track({ name: "enquiry_failed", reason: r.reason });
       }
     });
   };

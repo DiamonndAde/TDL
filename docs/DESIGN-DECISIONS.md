@@ -516,3 +516,49 @@ Every pass was run twice, once with a key set (banner showing) and once without 
 
 The custom LLM digest. Phase one stands: PostHog's own weekly digest and insight alerts, which cost nothing and
 need no code. The phase-two write-up is in `docs/ANALYTICS-PROPOSAL.md` for TDL to accept or decline.
+
+## 2026-10-08 — Analytics additions: viral guard, error events, PostHog AI, survey and experiment prepared
+
+Detail and arithmetic in `docs/ANALYTICS-PROPOSAL.md` §7–§11. The decisions that will matter later:
+
+- **Replay sample rate 0.25 → 0.05.** Sized against a viral posting, not normal traffic: 20,000 careers visitors
+  in a week at 5% is 1,000 recordings, 20% of the free monthly 5,000; a whole month of that is 4,000, still
+  inside. At 25% the same week would have spent the month alone, and with billing limits at zero PostHog then
+  stops ingesting replay and the data is lost — the quota spent on whoever arrived first. The cost is about
+  fifteen recordings in an ordinary month; raise it deliberately for an investigation, then put it back.
+- **Errors are typed events, not exception capture.** `capture_exceptions: false`, enforced. An error's message
+  and stack carry whatever was in flight, which on these routes is an applicant's answers. Failures report a
+  reason from a closed list (`delivery`, `unconfigured`, `validation`, `network`), and the server actions now
+  return that reason separately from the visitor's sentence — the first version string-matched the message,
+  which would have misfiled failures as soon as the wording changed. `form_validation_failed.reason` was a
+  free `string` and is now a closed union too.
+- **Two real bugs found by the canary test, not by reading code:**
+  1. An unreachable server action throws instead of returning `{ok:false}`. Nothing caught it: the visitor sat on
+     "Sending" with no message and no failure was ever reported. Both forms now catch it, show "We could not
+     reach our server…", reset the button, and report `network`. Verified in a browser with the POST aborted.
+  2. Setting `advanced_disable_flags` to save the flags request while the experiment is off also disabled the
+     remote config that switches recording on. Replay recorded nothing, silently. Removed, with a comment where
+     it was.
+  The canary test now submits the fully-filled form with the server action cut off, and fails unless both the
+  replay stream and the failure event are present. Result: 15 payloads, 66,597 bytes, 12 event and 3 replay
+  payloads, `talent_pool_failed` present, no canary under any decoding.
+- **"Never identify" is enforced, and the enforcement was tested.** `scripts/check-adapter.mjs` now fails on any
+  `identify`, `alias` or `setPersonProperties` call, on `person_profiles` other than `"never"`, on exception
+  capture, and on masking being loosened. Each was proven by introducing the violation. The first version of the
+  identify check **missed `client?.identify(...)`** because it did not allow for optional chaining; fixed, and
+  re-proven along with `posthog.setPersonProperties(...)`.
+- **PostHog AI is phase one of the AI digest, with a cost that is not money.** It answers plain-English funnel
+  questions; secondary sources put it at 2,000 free credits a month on every plan, and the $0 limit caps it.
+  But PostHog's own FAQ says the data it reads passes to Anthropic, OpenAI and Alphabet as subprocessors. It is
+  off until an org admin approves AI features, and turning it on adds a sentence to the privacy notice (Q30f).
+- **Survey and experiment are wired and off.** `disable_surveys` follows `NEXT_PUBLIC_ANALYTICS_SURVEYS`; the
+  survey itself is defined in PostHog, so the proposal carries its exact definition. The CTA experiment returns
+  the server-rendered control unless a known variant arrives within four seconds — no flicker, and an unknown
+  variant name from the dashboard is ignored rather than rendered. Variant names live in the event contract and
+  the label map is typed against it.
+- **Billing limits at zero cannot be set from here.** No PostHog project exists. It is item one of the analytics
+  block in `HANDOFF.md`'s launch checklist, before the key is ever deployed.
+- **The privacy draft had a hole from the previous round.** The approval asked that it say analytics data leaves
+  Nigeria and where it goes; the code and `.env.example` said so, but the draft notice still read "held in the
+  [region] region". It now names the transfer, the EU region in Frankfurt and the processor, and carries a
+  bracketed sentence for PostHog AI's US subprocessors.
