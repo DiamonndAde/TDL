@@ -347,6 +347,91 @@ Added to `docs/CLIENT-QUESTIONS.md` as Q30, and one part appended to Q29:
 
 ---
 
+## 14. Running the demo: step by step
+
+For the "TDL Demo" project in PostHog's EU cloud. The same steps, minus the seed and with `--production`,
+build the dashboard on TDL's own project later.
+
+### A. In PostHog, once (about five minutes)
+
+1. **Project settings → Session replay → turn on "Record user sessions".** Without it nothing is recorded, even
+   with the site's sampling at 1 — PostHog's own switch has to be on before the site's code can start a
+   recording. Leave PostHog's own sampling and URL triggers off; the site does that itself.
+2. **Project settings → Autocapture & heatmaps → turn on heatmaps.**
+3. **Project settings → Toolbar → Authorized URLs → add the demo URL** (your Vercel address, and
+   `http://localhost:3000` if you will also demo locally). The toolbar is how heatmaps are viewed on the page.
+4. **Leave AI features unapproved** (Organisation settings) unless TDL has said yes to Q30(f).
+5. If a card is ever added to the account, **set a $0 billing limit on every product first** (§11).
+6. **Account settings → Personal API keys → create a key** named "TDL dashboard setup" with the scopes
+   `dashboard:write`, `insight:write`, `project:read` and `query:read`. Copy it now; PostHog shows it once.
+
+### B. `.env.local` (gitignored — never committed)
+
+```
+NEXT_PUBLIC_POSTHOG_KEY=phc_…                      # Project settings → Project API key
+NEXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
+NEXT_PUBLIC_ANALYTICS_REPLAY_SAMPLE=1               # demo only: record every session
+
+POSTHOG_PERSONAL_API_KEY=phx_…                     # step A6
+POSTHOG_PROJECT_ID=…                               # the number in https://eu.posthog.com/project/<this>/
+POSTHOG_APP_HOST=https://eu.posthog.com
+POSTHOG_SEED_DEMO_PROJECT="TDL Demo"               # exactly the project's name
+```
+
+### C. Vercel → Settings → Environment Variables → **Production**
+
+Only the three browser variables — the personal key never goes to Vercel:
+
+```
+NEXT_PUBLIC_POSTHOG_KEY=phc_…
+NEXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
+NEXT_PUBLIC_ANALYTICS_REPLAY_SAMPLE=1
+```
+
+Then **redeploy `main`** — `NEXT_PUBLIC_` values are fixed when the site is built. Removing them again before
+launch is item 0 of `HANDOFF.md`'s launch checklist.
+
+### D. Build the dashboard, then seed it
+
+```powershell
+npm run posthog:setup -- --dry-run   # reads only; shows what it will create
+npm run posthog:setup                # creates "TDL — Careers & enquiries" and prints its link
+npm run posthog:seed -- --dry-run    # checks the four locks and prints the totals; sends nothing
+npm run posthog:seed                 # sends about 9,000 sample events across the last 30 days
+```
+
+Setup can be rerun at any time and only changes what is out of date. The seed refuses a second run while sample
+events exist (`--force` overrides). Sample events can take several minutes to appear, because they are sent as a
+historical import.
+
+### E. Click around
+
+Open the demo URL in a fresh browser window (an existing analytics choice is remembered per browser).
+
+1. The banner appears at the bottom after the page paints. **Accept.**
+2. `/careers`: scroll to the bottom and back, press **See current openings** (it opens TDL's board in a new tab
+   and records the click), then start the talent-pool form — fill some fields, leave one empty, move on.
+   Type nonsense, never real details; it is masked either way, but the demo should not need to prove that live.
+3. `/become-a-client`: press Continue with nothing selected (records a blocked step), then complete step 1, go
+   Back once, and stop partway through step 2.
+4. Visit two or three other pages, so the recording shows navigation.
+
+### F. Where to look in PostHog (EU cloud: eu.posthog.com)
+
+| To see | Go to | Note |
+|---|---|---|
+| **Live events** | **Activity** in the left sidebar → Live / Explore | Your clicks appear within seconds. Filter `demo` = `true` to see only sample events, or "is not set" for only your live ones |
+| **Recordings** | **Session replay** in the sidebar | Your session appears a minute or two after you stop. Every field and all text is masked by design — the replay shows the layout and the cursor, not content |
+| **Heatmaps** | **Toolbar**: from the project, launch the toolbar on the demo URL → Heatmap. Some versions also have **Heatmaps** in the sidebar | Click and scroll heatmaps of `/careers` from your live session. Sample events cannot produce heatmaps or recordings — only real visits can |
+| **The dashboard** | **Dashboards → "TDL — Careers & enquiries"**, or the link `posthog:setup` prints | The sample-data tile at the top says the numbers are invented. Say so out loud too |
+
+**What the demo shows and what it does not.** The dashboard's numbers are mostly sample data: they show what the
+charts *look like* once there is traffic, not anything about TDL's visitors. Recordings and heatmaps show only
+the session you just clicked through. And every funnel stops at the click out to the openings board — whether
+that click became an application happens in Zoho, which the site cannot see (§3, Q29f).
+
+---
+
 ## Phase two: a written weekly digest — optional, not built
 
 **Phase one is what ships and what TDL should try first: PostHog's own weekly digest and insight alerts.** They

@@ -21,7 +21,10 @@
     "test:provider": "node --experimental-strip-types --no-warnings scripts/provider-proof.mjs",
     "test:consent": "bash scripts/serve-and-run.sh python scripts/consent-proof.py docs/screenshots",
     "test:masking": "bash scripts/serve-and-run.sh python scripts/masking-proof.py",
-    "test:guard": "bash scripts/placeholder-guard-proof.sh"
+    "test:guard": "bash scripts/placeholder-guard-proof.sh",
+    "posthog:setup": "node scripts/posthog-setup.mjs",
+    "posthog:seed": "node scripts/posthog-seed.mjs",
+    "test:posthog-scripts": "node scripts/posthog-scripts-proof.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

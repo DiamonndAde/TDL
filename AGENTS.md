@@ -152,6 +152,7 @@ The full suite takes about an hour. Run the smallest tier that covers the change
 | `src/lib/recruitment/`, careers action | `npm run test:provider` |
 | Analytics, consent banner, either form's instrumentation | `npm run test:masking` and `npm run test:consent` (both need an analytics-on build — see `scripts/verify.sh` Tier 3 for the exact setup) |
 | `next.config.ts` placeholder guard, photo frames | `npm run test:guard` |
+| `scripts/posthog-setup.mjs`, `scripts/posthog-seed.mjs` | `npm run test:posthog-scripts` (an in-memory PostHog stand-in; never touches a real project) |
 | The enquiry form | `npm run test:form` |
 | Layout, routing, anything that changes page height | `npm run test:scroll` |
 | Copy or styles only | nothing beyond `npm run check` |

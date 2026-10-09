@@ -2,6 +2,12 @@
 
 ## Before launch — do these first
 
+0. **Take the demo analytics off the live site.** For the demo, the PostHog key of the "TDL Demo" project sits in the Vercel **Production** environment, because the demo URL is a Production deployment of `main`. Before launch:
+   - **Replace the demo PostHog key with TDL's**: set `NEXT_PUBLIC_POSTHOG_KEY` to the project key of TDL's own PostHog project (EU cloud), or remove it entirely if TDL has not approved analytics (Q30) — without it, analytics does not exist on the site.
+   - **Reset the replay sample rate to 0.05**: set `NEXT_PUBLIC_ANALYTICS_REPLAY_SAMPLE=0.05`, or delete the variable (0.05 is the default). The demo runs at 1, which would spend the free 5,000 recordings in days on real traffic (`docs/ANALYTICS-PROPOSAL.md` §7).
+   - Redeploy — `NEXT_PUBLIC_` values are baked in at build time.
+   - On TDL's own project, build the dashboard without the sample-data label: `npm run posthog:setup -- --production` with TDL's personal API key and project ID in `.env.local`. **Never run `posthog:seed` there** — it refuses unless the project is named as a demo, and that should stay true.
+
 1. **Remove `PLACEHOLDER_IMAGES`, `PLACEHOLDER_PRESENTATION_BUILD` and `PRESENTATION_HIDE_EMPTY_FRAMES` from the Vercel Production environment, then redeploy.** With both set, a Production deployment builds *with* presentation placeholders (initials monograms in the testimonial frames, and any stock that is ever registered). The build log prints a boxed warning every time this happens; it is a warning, not a stop. Check the Vercel dashboard → Settings → Environment Variables → Production, and confirm the live build log has no `PLACEHOLDER IMAGERY IS ON` block.
 2. Confirm `FORM_WEBHOOK_URL` is set in Production and a test submission arrives where TDL expects it (Q20).
    Set `ZOHO_RECRUIT_CLIENT_ID`, `ZOHO_RECRUIT_CLIENT_SECRET` and `ZOHO_RECRUIT_REFRESH_TOKEN` (Q29) and send one talent-pool submission from `/careers`: it must appear in Zoho Recruit → Candidates with a note titled "Talent pool submission from totaldatalimited.com". Until those three are set, talent-pool submissions go to the webhook instead — an inbox recruiters do not read, so somebody must own it.
@@ -13,7 +19,7 @@
    - **Leave AI features unapproved** unless TDL has answered Q30(f) yes, and in either case switch off "Enable AI training on anonymized data" in the organisation settings.
    - Leave `NEXT_PUBLIC_ANALYTICS_SURVEYS` and `NEXT_PUBLIC_ANALYTICS_EXPERIMENTS` unset until Q30(g) and (h) are answered.
 
-   Today no `NEXT_PUBLIC_POSTHOG_KEY` is set anywhere, so no banner shows, no SDK is downloaded and no request is made. Before ever setting it, TDL must also have approved Q30 and the privacy and cookies notices must carry the new section (Q25 legal review, draft in `docs/ANALYTICS-PROPOSAL.md` §4). Then run `npm run test:masking` against that build and confirm it reports no canary tokens, the replay stream present, and the failed-submission event present.
+   Apart from the demo project's key (item 0), no `NEXT_PUBLIC_POSTHOG_KEY` is set anywhere; without one, no banner shows, no SDK is downloaded and no request is made. Before ever setting it, TDL must also have approved Q30 and the privacy and cookies notices must carry the new section (Q25 legal review, draft in `docs/ANALYTICS-PROPOSAL.md` §4). Then run `npm run test:masking` against that build and confirm it reports no canary tokens, the replay stream present, and the failed-submission event present.
 
 ## Running a client presentation with placeholder imagery (Windows PowerShell)
 
