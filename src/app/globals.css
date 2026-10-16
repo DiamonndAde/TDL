@@ -42,6 +42,18 @@
     line-height: 1.5;
   }
 
+  /* The header is sticky (4rem, 4.5rem from md). Anything that can be scrolled to — an anchor, the skip link's
+     #main, a focused field — stops below it rather than underneath it. Lenis owns the scroll, but native
+     anchor jumps and scrollIntoView both honour scroll-margin. */
+  :where([id]) {
+    scroll-margin-top: 5rem;
+  }
+  @media (min-width: 48rem) {
+    :where([id]) {
+      scroll-margin-top: 5.5rem;
+    }
+  }
+
   /* Sentence case everywhere, no tracking. Display faces are set explicitly, never by heading level. */
   h1, h2, h3, h4 { font-weight: 500; line-height: 1.15; text-wrap: balance; }
   p { max-width: 72ch; text-wrap: pretty; }

@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { Analytics } from "@/components/layout/analytics";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
+import { staffPortalLink } from "@/lib/staff-portal";
 import { SmoothScroll } from "@/components/layout/smooth-scroll";
 import { RosterProvider } from "@/components/roster/roster-context";
 import { company } from "@/content/facts";
@@ -63,7 +64,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Analytics />
         <SmoothScroll />
         <RosterProvider>
-          <Header />
+          <Header portal={staffPortalLink()} />
           {children}
         </RosterProvider>
         <Footer />

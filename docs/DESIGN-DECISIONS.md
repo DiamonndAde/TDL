@@ -562,3 +562,34 @@ Detail and arithmetic in `docs/ANALYTICS-PROPOSAL.md` §7–§11. The decisions 
   Nigeria and where it goes; the code and `.env.example` said so, but the draft notice still read "held in the
   [region] region". It now names the transfer, the EU region in Frankfurt and the processor, and carries a
   bracketed sentence for PostHog AI's US subprocessors.
+
+## 2026-10-16 — TDL's review, part 1: light header with the full logo, staff-portal link, anchors clear the header
+
+Changes requested by TDL management after the demo. Recorded as client requests; where one reverses an earlier
+decision, the earlier reasoning is noted so it is not re-argued.
+
+- **Header is now light, with TDL's full logo exactly as supplied** — mark, olive wordmark and red tagline, in
+  colour, unaltered. This **reverses "header is always navy" (2026-09-18)** at the client's request. The olive
+  wordmark is 2.5:1 on navy, so the full lockup could only be shown on a light ground; that was the trade TDL
+  chose. Consequences, all handled: the status line moves from ink-light to olive (6.2:1 on paper); the primary
+  button inverts to its ink-filled form on its own, because the header no longer carries `.on-ink`; a 25%-olive
+  rule separates the header from paper sections below it. The logo's lime and red stay inside the logo asset,
+  as the token rules require, and logo text is exempt from WCAG contrast. The PNG has a transparent ground.
+- **The footer stays navy and keeps the mark-plus-name lockup**, because the full logo would not read there.
+- **The status line now shows from `xl` (1280 px) up.** At 1024 px the full logo, five nav items, the staff
+  portal link and the button fill the strip; the status line is also stated in every section's caption, so
+  nothing is lost below `xl`.
+- **The header was already sticky on every route** — measured at 1280 and 390 px on four routes before any change.
+  What was actually wrong: **anchor targets landed underneath it** (`/careers#talent-pool`, the skip link's
+  `#main`, `/work#…`). Fixed with `scroll-margin-top` on every element with an id (5 rem, 5.5 rem from `md`);
+  verified that each target now lands 15 px below the header at both widths. The mobile menu is capped to the
+  viewport and scrolls, so the last item is reachable on short phones.
+- **Staff portal (HRIS) link**: header, as an underlined link secondary to the main button, and the footer; opens
+  in a new tab. The URL and label live in `src/content/facts.ts`, TODO(client) Q31. **On the live site it is
+  hidden until the URL exists** — `/staff-portal` returns 404 and no link is rendered. **In demo builds** it shows
+  and points at a one-line holding page, "Staff portal link to be added", so it can be demonstrated without a dead
+  link.
+- **What a "demo build" is**: the existing presentation flag (`PLACEHOLDER_IMAGES`), exposed as `isDemoBuild` in
+  `src/lib/build-mode.ts`. Deliberately not a new flag — that one is already guarded in `next.config.ts` and
+  already first on the launch checklist for removal. It is server-only, so client components such as the header
+  receive what they need as props.

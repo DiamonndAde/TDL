@@ -33,6 +33,12 @@ export const company = {
     facebook: "https://m.facebook.com/profile.php/?id=100083561119652",
   },
   siteUrl: "https://totaldatalimited.com",
+  /**
+   * The HRIS login for TDL's managed staff. Shown in the header and footer as a secondary link, opening in a new
+   * tab. TODO(client): Q31 — the URL and the label TDL uses for it. Until the URL is set, the link is hidden on
+   * the live site and points at a holding page in demo builds (src/lib/staff-portal.ts).
+   */
+  staffPortal: { label: "Staff portal", url: "" },
 } as const;
 
 export const figures = {
