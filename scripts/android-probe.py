@@ -82,9 +82,11 @@ with sync_playwright() as p:
     interact("/", [
         lambda: pg.locator("#services button[aria-expanded]").nth(0).click(),
         lambda: pg.locator("#services button[aria-expanded]").nth(3).click(),
-        lambda: pg.locator("[role=tab]").nth(1).click(),
-        lambda: pg.locator("[role=tab]").nth(2).click(),
-        lambda: pg.get_by_role("button", name="Read the full quote").click(),
+        # The testimonial tablist these steps used to click became static cards on 2026-10-16 (no JavaScript, nothing
+        # to measure); the mobile menu is the other interactive control on the shipping home page.
+        lambda: pg.locator("#services button[aria-expanded]").nth(5).click(),
+        lambda: pg.get_by_role("button", name="Menu").click(),
+        lambda: pg.get_by_role("button", name="Close").click(),
     ])
     interact("/become-a-client", [
         lambda: pg.locator("#services input[type=checkbox]").first.check(),

@@ -53,8 +53,10 @@ export const step3 = z.object({
     .check(z.trim(), z.regex(/^\+?[0-9 ()-]{7,20}$/, "Enter a phone number, digits only, with or without the country code.")),
   contactTime: z.enum(values(contactTimeOptions), { error: "Choose when to call." }),
   consent: z.literal(true, { error: "Tick the box so we can process your details under the NDPR." }),
-  // honeypot: humans never see it; anything in it is a bot
-  website: z.optional(z.string().check(z.maxLength(0))),
+  // honeypot: humans never see it; anything in it is a bot. Accepted here on purpose: the server action answers a
+  // filled honeypot with a quiet "ok" and delivers nothing. Rejecting it in the schema (as before 2026-10-17) left a
+  // bot's browser stuck on a form that would not submit, which tells it exactly which field to leave empty.
+  website: z.optional(z.string()),
 });
 
 export const enquirySchema = z.extend(z.extend(step1, step2.shape), step3.shape);

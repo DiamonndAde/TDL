@@ -20,9 +20,9 @@ Read `docs/TDL-REVAMP-BRIEF.md` before writing code, and `docs/DESIGN-DECISIONS.
 
 Marketing site for Total Data Limited — Nigerian HR and business process outsourcing firm, incorporated 2000, manages 5,000+ staff across Nigeria and Benin Republic. The buyer is an HR director, COO or country manager about to hand over responsibility for thousands of livelihoods and their own statutory compliance exposure. The site must read as **an operations surface** — precise, instrumented, in control at scale — not as a consultancy brochure with animations added.
 
-## Stack (Next.js 16.3.5 — verified against the bundled docs)
+## Stack (Next.js 16.3.8 — verified against the bundled docs)
 
-- Next.js 16.3.5 App Router, React 19.2, TypeScript strict. Turbopack is the default for `dev` and `build`; no flag.
+- Next.js 16.3.8 App Router (16.3.5 until 2026-10-17; patched for a critical advisory), React 19.2, TypeScript strict. Turbopack is the default for `dev` and `build`; no flag.
 - `reactCompiler: true` is on. Don't add manual `useMemo`/`useCallback`; the compiler handles it. Confirm `useGSAP` behaves under it at milestone 3.
 - `params` and `searchParams` are Promises — `await` them. Use the generated `PageProps<'/services/[slug]'>` / `LayoutProps<'/'>` helpers (`next typegen`).
 - Sitemap and robots are the `app/sitemap.ts` and `app/robots.ts` file conventions. **Do not install `next-sitemap`.**
@@ -113,7 +113,7 @@ Where photography goes, and only there:
 - **The hero stays abstract.** No photography above the fold.
 
 **Placeholders — presentations only, three absolute rules.** `PLACEHOLDER_IMAGES=true` may fill a reserved frame with *licensed* stock, labelled "Placeholder — TDL photography required" and credited (`PLACEHOLDERS.md`) — except the home slider, which carries one caption line for all its images and no per-image badge or credit (TDL review, 2026-10-17; the credits stay in `PLACEHOLDERS.md`); the build guard in `next.config.ts` keeps it off production. Regardless of any flag:
-1. **Never generated imagery, anywhere, for any frame** — not as a placeholder, not as a graphic, not "just for the meeting".
+1. **Never generated imagery, anywhere, for any frame** — not as a placeholder, not as a graphic, not "just for the meeting". **One client-approved exception (TDL, 2026-10-17; `docs/DESIGN-DECISIONS.md`): the home slider, in presentation builds only**, may show AI-generated stand-ins until TDL's photographs arrive, under the caption "Generated stand-in images, not TDL's staff. TDL's own photographs to come." They are behind the same build guard as stock, recorded in `PLACEHOLDERS.md` with model, prompt and approval, and never reach a shipping build. Rules 2 and 3 are unchanged: no generated face in any frame that names a person, and no generated image anywhere that claims to be TDL's staff or premises.
 2. **Never a stock or generated face in a frame that carries a named individual** — testimonial executives, leadership, board. A face under a real name manufactures a likeness. Named-person frames take an initials monogram or stay reserved.
 3. **Never a photograph in a frame whose caption asserts TDL's own address or premises** — the 69 Coker Road frame on `/about-us`, and the home slider whenever it names the address. Any photograph there that is not TDL's asserts something false. The `/about-us` frame stays reserved until TDL's own shot arrives; the home slider shows placeholders only under a caption that names no address and says they are not TDL.
 
@@ -156,7 +156,7 @@ The full suite takes about an hour. Run the smallest tier that covers the change
 | `next.config.ts` placeholder guard, photo frames | `npm run test:guard` |
 | The home slider, `/contact-us` brochure QR, `/brochure` | `npm run test:slider` (builds a presentation build, then restores the shipping one) |
 | `scripts/posthog-setup.mjs`, `scripts/posthog-seed.mjs` | `npm run test:posthog-scripts` (an in-memory PostHog stand-in; never touches a real project) |
-| The enquiry form | `npm run test:form` |
+| The enquiry form | `npm run test:form` (submits to a local webhook stand-in and asserts what arrives; no rebuild) |
 | Layout, routing, anything that changes page height | `npm run test:scroll` |
 | Copy or styles only | nothing beyond `npm run check` |
 

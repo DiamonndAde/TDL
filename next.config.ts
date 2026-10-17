@@ -82,6 +82,19 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
+  // Any *.vercel.app host is a demo or preview, never the site to index (TDL review, 2026-10-17). Vercel adds its own
+  // noindex only to Preview deployments, and the demo at totaldatalimited.vercel.app is a Production deployment, so
+  // it would otherwise be indexable alongside — and in competition with — totaldatalimited.com. Host-matched, so the
+  // real domain is untouched; robots.txt still allows crawling, which is what lets search engines see this header.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "(?<sub>.+)\\.vercel\\.app" }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
+  },
   async redirects() {
     return [
       { source: "/new-client", destination: "/become-a-client", permanent: true },

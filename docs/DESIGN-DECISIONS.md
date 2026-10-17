@@ -774,3 +774,44 @@ decision, the earlier reasoning is noted so it is not re-argued.
   fail with the reduced-motion bound removed — and that exposed a weak check: "no auto-advance" passed because the
   instant reduced-motion animation cycled the slider 150 times in 7.5 s and happened to land back on image 1. It now
   counts every change. The keep-out zones and the settle are covered by screenshots, not an automated test.
+
+## 2026-10-17 — TDL review round 2, part 3: brochure, Next 16.3.8, a form test that tests, noindex off-domain, generated stand-ins allowed in the slider
+
+- **Brochure live** (Q32). TDL's "Total Data Limited Profile (2026).pdf" is `public/brochure.pdf`, so `/brochure`
+  (the address the QR code carries) now 307s to it and the contact page says "our brochure (PDF)". Compressed
+  **2,543,741 → 1,098,492 bytes** (2.4 MB → 1.05 MB, −57%). 2.15 MB of the original was photographs embedded at more
+  resolution than the 960 pt slide pages show; each JPEG over 30 KB was resampled to 1.4 px per displayed point
+  (1,344 px for a full-width image) at quality 62, and the fonts were subset. The text is real text and comes out
+  identical on all 17 pages; renders at 96 dpi are indistinguishable side by side. PyMuPDF's own `rewrite_images`
+  did nothing (−3%): each image is shown nearly full-page, so its effective dpi sat just under the threshold.
+  `scripts/shrink-pdf.py` is the reproducible version, for the next edition.
+- **Next.js 16.3.5 → 16.3.8**, the latest 16.3 patch, which clears the critical advisory (RCE in `next/og`
+  `ImageResponse`, and a draft-mode leak through `use cache` — the site uses neither, but it should not ship a
+  known-critical version). 16.4.x was not taken: a minor, and AGENTS.md and the bundled docs are pinned to 16.3.
+  `eslint-config-next` and `@next/bundle-analyzer` moved with it; versions pinned exactly, as before. Seven *high*
+  advisories remain, all in build tooling (`braces`/`micromatch` via `fast-glob` in the ESLint plugin,
+  `source-map-js`) or in `sharp`'s bundled librsvg (SVG rasterisation, which the site never asks `next/image` to do).
+- **`X-Robots-Tag: noindex, nofollow` on every `*.vercel.app` host**, via `headers()` with a host match. The demo at
+  totaldatalimited.vercel.app is a *Production* deployment, and Vercel only adds its own noindex to Preview ones —
+  checked before the change: no robots header at all. Host-matched, so totaldatalimited.com is untouched; robots.txt
+  still allows crawling, which is what lets a crawler see the header.
+- **`npm run test:form` now asserts the real submission path.** It used to print what it saw and fail only on a
+  crash. It now runs a webhook stand-in on :3133, starts the production server with `FORM_WEBHOOK_URL` pointed at it
+  (read at request time, so no rebuild), and asserts: one JSON POST carrying exactly what was entered; the success
+  screen; on a 500, the delivery error, no success, and the form still there; a filled honeypot delivers nothing.
+  Seen to fail: with the action returning "ok" without calling the webhook, four checks failed.
+  - **It found a bug.** The schema rejected a non-empty honeypot (`maxLength(0)`), so the server's "answer a bot
+    with a quiet ok, deliver nothing" branch could never run — a bot's browser was left on a form that silently
+    would not submit, which tells it which field to leave empty. The schema now accepts the field and the server
+    branch does its job. Nothing was ever delivered from a bot either way.
+  - Its alert checks read inside `<main>`: Next's route announcer is an empty `role=alert` in a shadow root, which
+    Playwright's locators pierce.
+- **Generated images: a client-approved exception, slider only, presentation builds only** (TDL asked, 2026-10-17,
+  for generated stand-ins in the slider until their photographs arrive). AGENTS.md rule 1 now carries it. The
+  reasoning that made rule 1 absolute still holds everywhere else — this firm sells workforce integrity, and a
+  synthetic person presented as theirs is a credibility risk — so the exception is fenced: behind the same build
+  guard as stock (they live under `/placeholders/`, which the guard test greps the shipping HTML for); under a caption
+  that says what they are, "Generated stand-in images, not TDL's staff. TDL's own photographs to come." — the
+  stock caption's "photographs" would be false; recorded in PLACEHOLDERS.md with model, prompt and approval. Rules 2
+  and 3 do not move: no generated face where a person is named, nothing generated that claims to be TDL's staff or
+  premises.

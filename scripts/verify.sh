@@ -94,7 +94,8 @@ step "harden: axe 17 routes x 1280/390, keyboard, reduced motion, redirects, sit
       bash scripts/serve-and-run.sh python scripts/harden.py
 step "throttled mobile: LCP, CLS, interaction latency, scroll-fling" \
       bash scripts/serve-and-run.sh python scripts/android-probe.py
-step "enquiry form proof"     bash scripts/serve-and-run.sh python scripts/form-proof.py "$WORK"
+step "enquiry form proof: real submission to a webhook stand-in, delivery failure, honeypot" \
+      bash scripts/form-proof.sh "$WORK"
 mkdir -p "$WORK/lh"
 # One route per page template. axe already covers accessibility on every route; Lighthouse adds performance.
 step "Lighthouse, one route per template (Chrome killed between runs)" \
