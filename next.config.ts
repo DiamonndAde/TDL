@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 import bundleAnalyzer from "@next/bundle-analyzer";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 
 /**
  * Placeholder imagery cannot ship by accident.
@@ -85,6 +87,14 @@ const nextConfig: NextConfig = {
       { source: "/new-client", destination: "/become-a-client", permanent: true },
       { source: "/Blog", destination: "/insights", permanent: true },
       { source: "/index.html", destination: "/", permanent: true },
+      // The address the brochure QR code carries (/contact-us). Temporary (307), because where it points changes:
+      // the PDF once public/brochure.pdf exists, /services until then. TODO(client): Q32. src/lib/brochure.ts
+      // reads the same file, so the contact page's wording switches with it.
+      {
+        source: "/brochure",
+        destination: existsSync(join(process.cwd(), "public", "brochure.pdf")) ? "/brochure.pdf" : "/services",
+        permanent: false,
+      },
     ];
   },
 };

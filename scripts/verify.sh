@@ -5,7 +5,7 @@
 #   npm run verify       Tier 2  + production build, scroll regression, first-load JS     (~8 min)
 #   npm run verify:full  Tier 3  + everything: axe on every route at both widths, keyboard, reduced motion,
 #                                redirects, sitemap, JSON-LD, Lighthouse, throttled-mobile probe, consent banner,
-#                                canary masking test, recruitment adapter, placeholder guard   (~45-60 min)
+#                                canary masking test, recruitment adapter, placeholder guard, home slider (~45-60 min)
 #
 # Every step runs even if an earlier one failed (except where a later step needs the build), and the summary
 # at the end lists each step with its result and time. Exits non-zero if anything failed.
@@ -104,6 +104,11 @@ step "recruitment adapter, every branch against a stub" \
       node --experimental-strip-types --no-warnings scripts/provider-proof.mjs
 step "placeholder guard: refuses production, allows presentation and preview, no stock in the shipping HTML" \
       bash scripts/placeholder-guard-proof.sh
+
+# Builds a presentation build of its own (the slider has no photographs to show otherwise) and restores the
+# shipping one before returning.
+step "home slider: 6 s, pause, hover/focus, reduced motion, CLS, keyboard; brochure QR and /brochure" \
+      bash scripts/slider-proof.sh
 
 # Analytics on, pointed at the local PostHog stand-in, replay always sampled — the canary needs the replay
 # stream to exist, and the consent banner only renders with a key.

@@ -640,3 +640,68 @@ decision, the earlier reasoning is noted so it is not re-argued.
   `.env.local`, every "shipping" Tier 2/3 build quietly had analytics on with that key. Proven: one built chunk
   carried the key with `unset`, none with the variables exported as empty strings, which is the fix. Earlier
   Tier 2 results are unaffected — the key arrived after them.
+
+## 2026-10-17 — TDL's review, part 3: a photograph slider near the close, the brochure QR code
+
+- **The home slider is a client exception to the motion rule, logged as one** (item 8; AGENTS.md, The one motion
+  idea). Everything outside the Roster still moves only on a user action — except this, because TDL asked. The
+  bounds are the decision, and `npm run test:slider` asserts every one:
+  - 6 s per slide, and the timer only starts after first paint, while the slider is half on screen and the tab is
+    visible;
+  - a visible **Pause** button, last in the control row so its arrival after hydration moves nothing;
+  - it **pauses while hovered** (mouse only — a tap is not a hover) and **while focus is inside**; pressing Play
+    overrides both, or Play would do nothing while the pointer is on it;
+  - **never under `prefers-reduced-motion`**: no timer, no Pause button, Previous and Next jump without a tween.
+  - Swipe is native CSS scroll-snap, so it works before hydration and costs no script. Lenis runs on its defaults
+    (vertical wheel only, no touch sync), so it never intercepts a horizontal swipe.
+  - Accessibility follows the APG carousel: a region with `aria-roledescription="carousel"`, each slide a labelled
+    group "n of 5", `aria-live` off while rotating and polite when paused, and the slide strip focusable so arrow
+    keys scroll it. axe: no violations on `/` at 1280 and 390 in a presentation build.
+  - No layout shift: the server renders every slide at a reserved aspect (3:2 on phones, 16:9 from `md`). LCP is
+    untouched — the slider is the second-last section and its images are lazy. CLS over the whole of `/`, slider
+    rotating, measured 0.005–0.006 (budget 0.1).
+- **Three states, decided at build time** (`src/components/home/office.tsx`):
+  - TDL's own photographs in `src/content/photographs.ts` (Q27, now four to six) → the slider, and the section may
+    name 69 Coker Road, because these are the office;
+  - a presentation build with none yet → the slider over five licensed placeholders, each labelled and credited,
+    under "People at work in Nigerian offices. Not TDL's staff or premises; TDL's own photographs to come." **No
+    address beside them** — the premises rule (AGENTS.md, Placeholders, rule 3) is enforced by the branch having no
+    `note` at all;
+  - otherwise → the existing "Photographs to come" note naming the address and the format.
+- **The Work section's photograph folded into the slider** (decision C), so the headline stands alone there.
+- **Photographs** (decision B): four new ones plus `desk-work`, all on PLACEHOLDERS.md with sources and the full
+  rejection list. Faces are fine here — the slider names nobody and claims no premises. Three were cropped to remove
+  a device maker's logo; nothing else was altered.
+  - **Two first picks were dropped after review.** 17226661 (Abuja, at a desk) carried a large brand print across
+    the sweatshirt once the laptop logo was cropped out. And two Unsplash pictures from the same NESA by Makers
+    session turned out to be the same two people, which read as a repeat. The replacement, Oladipupo Ajisegiri's
+    Lagos office shot (1405769), is unposed and real, but it is under fluorescent light with a cool cast. It is the
+    weakest of the five, and it is in because the alternatives all failed the logo, location or "at work" tests.
+  - **Unsplash credit is the handle `@disruptxn`.** The profile's display name is now "X"; the handle is the only
+    credit that is certainly right.
+- **The brochure QR code** (item 7, decision E) is drawn at prerender by the `qrcode` package in a server
+  component. The browser gets SVG markup and no script: `/contact-us` first-load JS went 3.6 → 3.5 KB. Navy modules
+  on paper, error correction M, the standard quiet zone; it decodes (checked with OpenCV from a screenshot).
+  - It encodes **`https://totaldatalimited.com/brochure` by default**. A demo build encodes the demo's own address
+    (`NEXT_PUBLIC_SITE_URL`, else Vercel's production URL) and carries a "Demo build … Do not print it" label, because a
+    printed demo code dies with the demo deployment.
+  - `/brochure` is a **307** (`permanent: false`) in `redirects()`, because where it points will change: to
+    `/brochure.pdf` once that file exists in `public/`, to `/services` until then (Q32). Both the redirect and the
+    page's wording ("our services" / "our brochure (PDF)") read the same file, so adding the PDF is the whole swap.
+    `next.config.ts` cannot import from `src/` (the guard test loads it with Node's type stripping), and a file on
+    disk is the one fact both sides can check.
+  - `qrcode` is a runtime dependency only so a server render can never miss it; it never reaches the client.
+- **First-load JS:** `/` 12.0 → 13.4 KB own code — the slider's client component (it ships in the shipping build too,
+  where the note renders instead, because the route imports it; that is also exactly what it will cost once
+  TDL's photographs arrive). Every other route unchanged within 0.1 KB. Worst route 180.3 KB against 201.7.
+- **A testing bug found on the way: `scripts/serve-and-run.sh` always exited 0.** It piped the proof through
+  `grep` and ended with a PowerShell call, so `verify.sh` marked every server-backed proof — scroll, harden,
+  throttled mobile, consent, canary — "ok" whatever happened; only the printed `FAILURES:` line told the truth.
+  Proven: a command that exits 1 came back 0 before the fix and 1 after. It now returns the proof's own status.
+  Every earlier report quoted the `FAILURES:` lines, which were all "none", so no past result changes.
+  `form-proof.py` still asserts nothing — it prints what it saw and fails only on a crash — which its Tier 3 "ok"
+  should be read as.
+- **New test, seen to fail:** `npm run test:slider`. With the reduced-motion bound removed from the component, it
+  failed three checks (auto-advanced, showed Pause, and "Next" landed one slide on); restored, it passed. The guard
+  test's stock-file check was widened from `/placeholders/pexels` to `/placeholders/` (Unsplash files exist now)
+  and seen to fail on a planted Unsplash reference.

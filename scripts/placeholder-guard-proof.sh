@@ -46,7 +46,7 @@ fi
 pages=$(find "$html_dir" -name '*.html' | wc -l | tr -d ' ')
 stock=$(grep -l 'data-placeholder=' -r "$html_dir" --include='*.html' 2>/dev/null | wc -l | tr -d ' ')
 label=$(grep -l 'Placeholder — TDL photography required' -r "$html_dir" --include='*.html' 2>/dev/null | wc -l | tr -d ' ')
-pexels=$(grep -l '/placeholders/pexels' -r "$html_dir" --include='*.html' 2>/dev/null | wc -l | tr -d ' ')
+pexels=$(grep -l '/placeholders/' -r "$html_dir" --include='*.html' 2>/dev/null | wc -l | tr -d ' ')
 if [ "$pages" -gt 0 ] && [ "$stock" -eq 0 ] && [ "$label" -eq 0 ] && [ "$pexels" -eq 0 ]; then
   echo "  ok    $pages prerendered pages, none with a placeholder image, label or stock file"
 else

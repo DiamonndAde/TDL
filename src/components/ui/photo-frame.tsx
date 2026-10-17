@@ -67,7 +67,7 @@ export function PhotoFrame({
         />
         <p className="data absolute left-3 top-3 bg-ink px-2.5 py-1.5 text-paper">Placeholder — TDL photography required</p>
         <p className="data absolute bottom-3 right-3 bg-paper/90 px-2 py-1 text-olive">
-          Photo: {stock.photographer}, Pexels
+          Photo: {stock.photographer}, {stock.licence}
         </p>
       </div>
     );

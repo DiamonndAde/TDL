@@ -76,6 +76,8 @@ Lime `#A4CE3C` and red `#EA2126` from the logo are not tokens; they appear only 
 
 A single `position: fixed` canvas behind the page holds one array of marks, one per managed employee, that **reconfigures** on scroll and never re-enters: drifting population → tabular grid → map of Nigeria and Benin → seven service columns → lifecycle path → the TDL mark. Each section owns a placeholder that reserves layout (no CLS) and the canvas computes targets from its rect. The header status line states the current state in text. Everything else on the page stays quiet. Motion outside the canvas happens only in response to a user action — so **no marquee, no section entrances, no hover-lift.** The hero headline's SplitText reveal is the one text animation, and it must not delay LCP: render the text, then split.
 
+**One logged client exception: the home photograph slider auto-advances** (TDL review, 2026-10-16, item 8 — their request, not a design change; `docs/DESIGN-DECISIONS.md` 2026-10-17). It is bounded and the bounds are the rule: 6 s per slide, only after first paint and while on screen; a visible Pause button; pauses while hovered or while focus is inside; **never under `prefers-reduced-motion`** (no timer, no Pause button). Swipe is native scroll-snap. It is not a precedent: nothing else on the site moves on its own.
+
 ## Hard rules
 
 **Don't build the generic version.** No fade-and-slide-up on every section. No hover-lift on every card. No tracked-out ALL-CAPS eyebrow labels. No `01`/`02`/`03` counters except where content is genuinely sequential (lifecycle, form steps). No single accented word in a headline. No `→` glued onto button text. No gradient washes as decoration. No icons on service rows.
@@ -106,14 +108,14 @@ A single `position: fixed` canvas behind the page holds one array of marks, one 
 
 Where photography goes, and only there:
 - **Testimonials**: the three executives are the proof. Real headshots at 80–100 px (Q26), never treated like logos. Frames are reserved and empty until the headshots arrive.
-- **Home, near the close**: one real photograph of TDL's own team or the Ilupeju office (Q27). Reserved as a compact bordered note ("Photograph to come", the address, the format) until then — never an empty box at the photograph's size, which reads as broken.
+- **Home, near the close**: four to six real photographs of TDL's own team at work and the Ilupeju office, run as the slider above (Q27). Until they arrive, a compact bordered note ("Photographs to come", the address, the format) — never an empty box at the photograph's size, which reads as broken. Presentation builds may show labelled placeholders there under a caption that claims nothing about TDL; the address is never shown beside them.
 - **`/about-us`** is the human page: leadership, board, the office, real staff (Q18). Plan the layout around real photography and reserve the spaces.
 - **The hero stays abstract.** No photography above the fold.
 
 **Placeholders — presentations only, three absolute rules.** `PLACEHOLDER_IMAGES=true` may fill a reserved frame with *licensed* stock, labelled "Placeholder — TDL photography required" and credited (`PLACEHOLDERS.md`); the build guard in `next.config.ts` keeps it off production. Regardless of any flag:
 1. **Never generated imagery, anywhere, for any frame** — not as a placeholder, not as a graphic, not "just for the meeting".
 2. **Never a stock or generated face in a frame that carries a named individual** — testimonial executives, leadership, board. A face under a real name manufactures a likeness. Named-person frames take an initials monogram or stay reserved.
-3. **Never a photograph in a frame whose caption asserts TDL's own address or premises** — the 69 Coker Road frames on the home page and `/about-us`. Any photograph there that is not TDL's asserts something false. They stay reserved until TDL's own shot arrives.
+3. **Never a photograph in a frame whose caption asserts TDL's own address or premises** — the 69 Coker Road frame on `/about-us`, and the home slider whenever it names the address. Any photograph there that is not TDL's asserts something false. The `/about-us` frame stays reserved until TDL's own shot arrives; the home slider shows placeholders only under a caption that names no address and says they are not TDL.
 
 **Illustration and graphics — allowed where they earn their place.** Diagrams, the coverage map, the lifecycle graphic, data figures, icons. Built, not generated: SVG authored in code, using the palette tokens and Archivo. Same system as the Roster, so they read as part of the site rather than dropped into it. No generated PNGs.
 
@@ -143,7 +145,7 @@ The full suite takes about an hour. Run the smallest tier that covers the change
 |---|---|---|---|
 | **1** | Every change. The default for small changes | `npm run check` | Lint (0 errors), typecheck, boundary check — **plus only the tests covering what you touched** |
 | **2** | End of a feature, or before a push to GitHub/Vercel | `npm run verify` | Tier 1 + production build, scroll regression, first-load JS on every route |
-| **3** | Before a client demo or launch, or when the owner asks | `npm run verify:full` | Everything: axe on every route at 1280 and 390, keyboard, reduced motion, redirects, sitemap, JSON-LD, Lighthouse (one route per template), throttled-mobile probe, enquiry form, consent banner, canary masking test, recruitment adapter, placeholder guard |
+| **3** | Before a client demo or launch, or when the owner asks | `npm run verify:full` | Everything: axe on every route at 1280 and 390, keyboard, reduced motion, redirects, sitemap, JSON-LD, Lighthouse (one route per template), throttled-mobile probe, enquiry form, consent banner, canary masking test, recruitment adapter, placeholder guard, home slider |
 
 **Don't rerun suites unrelated to the change.** The boundary check is in Tier 1 because it is static, takes under a second, and guards rules that must never regress silently (no ATS wiring outside the adapter, no candidate storage, nobody identified, replay masking in force). Beyond that, pick targeted tests by what the change touches:
 
@@ -152,6 +154,7 @@ The full suite takes about an hour. Run the smallest tier that covers the change
 | `src/lib/recruitment/`, careers action | `npm run test:provider` |
 | Analytics, consent banner, either form's instrumentation | `npm run test:masking` and `npm run test:consent` (both need an analytics-on build — see `scripts/verify.sh` Tier 3 for the exact setup) |
 | `next.config.ts` placeholder guard, photo frames | `npm run test:guard` |
+| The home slider, `/contact-us` brochure QR, `/brochure` | `npm run test:slider` (builds a presentation build, then restores the shipping one) |
 | `scripts/posthog-setup.mjs`, `scripts/posthog-seed.mjs` | `npm run test:posthog-scripts` (an in-memory PostHog stand-in; never touches a real project) |
 | The enquiry form | `npm run test:form` |
 | Layout, routing, anything that changes page height | `npm run test:scroll` |

@@ -2,6 +2,7 @@ import { PartnerCta } from "@/components/ui/partner-cta";
 import type { Metadata } from "next";
 import { Container } from "@/components/layout/container";
 import { Register } from "@/components/layout/register";
+import { BrochureQr } from "@/components/contact/brochure-qr";
 import { JsonLd } from "@/components/seo/json-ld";
 import { company, process } from "@/content/facts";
 
@@ -56,6 +57,9 @@ export default function ContactPage() {
                     Open in Google Maps
                   </a>
                 </address>
+              </Row>
+              <Row term="Brochure">
+                <BrochureQr />
               </Row>
             </dl>
           </div>

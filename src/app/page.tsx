@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * Home, the brief's nine sections plus one reserved photograph before the close. Ink brackets paper: hero and proof on ink, six reading sections on
+ * Home, the brief's nine sections plus a photograph slider before the close (TDL review, 2026-10-16). Ink brackets paper: hero and proof on ink, six reading sections on
  * paper, the close on ink. The Roster runs behind the whole length; each section owns the slot it draws into.
  */
 export default function Home() {
