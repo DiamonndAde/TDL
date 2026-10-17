@@ -10,11 +10,13 @@ import { Services } from "@/components/home/services";
 import { Testimonials } from "@/components/home/testimonials";
 import { Work } from "@/components/home/work";
 import { JsonLd } from "@/components/seo/json-ld";
-import { company } from "@/content/facts";
+import { company, headline } from "@/content/facts";
 import { emptyFramesHidden, placeholdersEnabled } from "@/content/placeholders";
 
 export const metadata: Metadata = {
-  title: "Total Data Limited — HR and business process outsourcing across Nigeria and Benin Republic",
+  // Matches the hero headline (TDL review, 2026-10-16). Absolute, so the "— Total Data Limited" template is not
+  // appended twice. TODO(client): Q23 — headline approval covers this too.
+  title: { absolute: `Total Data Limited — ${headline.default}` },
   description: `${company.description} ISO 9001:2015 certified, Lagos.`,
   alternates: { canonical: "/" },
 };

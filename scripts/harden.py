@@ -5,7 +5,7 @@ Checks, each printed as ok/FAIL with the evidence:
   2. Sitemap and robots: sitemap lists exactly the indexable routes; /insights and /dev are out; robots points at it.
   3. JSON-LD: every ld+json block parses, carries the expected @type, and contains no raw "<".
   4. axe-core on every route at 1280 and 390 px: no serious or critical violations; moderate/minor listed.
-  5. Keyboard: services rows, testimonial tablist and the three-step form are operable by keyboard with a visible
+  5. Keyboard: services rows, testimonial cards and the three-step form are operable by keyboard with a visible
      focus ring on every stop.
   6. Reduced motion: final values in the proof bar at t=0, the headline fully visible, no running animations,
      no Lenis; the Roster status line still tracks the section after a scroll.
@@ -182,20 +182,21 @@ with sync_playwright() as p:
     pg.keyboard.press("Tab"); pg.wait_for_timeout(100)
     f = focus_ring()
     check(f["tag"] == "A" and f["ring"], "Tab from an open row reaches its link inside the panel", json.dumps(f))
-    # testimonials tablist
-    tab0 = pg.locator("[role=tablist] [role=tab]").first
-    tab0.focus(); pg.wait_for_timeout(100)
-    f = focus_ring()
-    check(f["ring"], "testimonial tab shows a ring", json.dumps(f))
-    pg.keyboard.press("ArrowDown"); pg.wait_for_timeout(250)
-    sel = pg.evaluate("() => [...document.querySelectorAll('[role=tab]')].map(t => t.getAttribute('aria-selected'))")
-    check(sel[1] == "true" and pg.evaluate("() => document.activeElement.getAttribute('role')") == "tab", "ArrowDown selects and focuses the second testimonial", str(sel))
-    pg.keyboard.press("End"); pg.wait_for_timeout(250)
-    sel = pg.evaluate("() => [...document.querySelectorAll('[role=tab]')].map(t => t.getAttribute('aria-selected'))")
-    check(sel[-1] == "true", "End selects the last testimonial", str(sel))
-    pg.keyboard.press("Tab"); pg.wait_for_timeout(100)
-    f = focus_ring()
-    check(f["ring"], "Tab leaves the tablist to the next control with a ring", json.dumps(f))
+    # testimonial cards (since 2026-10-16; they replaced the tablist): each card's full-quote link is reachable by
+    # Tab, in card order, with a visible ring, and goes to that person's section on /work.
+    links = pg.locator("#testimonials a[href^='/work#']")
+    check(links.count() == 3, "three testimonial cards, each linking to its full quote on /work", str(links.count()))
+    links.first.focus(); pg.wait_for_timeout(100)
+    hrefs = []
+    for i in range(3):
+        f = focus_ring()
+        href = pg.evaluate("() => document.activeElement.getAttribute('href')")
+        name = pg.evaluate("() => document.activeElement.getAttribute('aria-label') || ''")
+        hrefs.append(href)
+        check(f["ring"] and "Read the full quote" in name, f"testimonial link {i + 1} has a ring and names the person", json.dumps({**f, "href": href, "name": name}))
+        if i < 2:
+            pg.keyboard.press("Tab"); pg.wait_for_timeout(100)
+    check(hrefs == ["/work#carlcare", "/work#chi", "/work#transsnet"], "Tab moves through the cards in order", str(hrefs))
     if OUT:
         pg.screenshot(path=str(OUT / "harden-keyboard-testimonials.png"), clip=None)
 

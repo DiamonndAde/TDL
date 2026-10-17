@@ -4,7 +4,10 @@
  * TODO(client): Q21 — permission to name these companies in case studies (a stronger claim than a testimonial).
  * TODO(client): Q26 — real headshots of the three executives (they are the proof); until then `portrait` is undefined.
  *
- * `pull` is the sentence shown large in the testimonials section; `full` is the whole quote, shown on expand.
+ * `excerpt` is the one sentence shown on the home page's card. It is EXCERPTED, never rewritten: each is a
+ * verbatim sentence of that person's own quote, chosen by TDL (review, 2026-10-16), and the boundary check
+ * (`scripts/check-adapter.mjs`) fails if one stops being a verbatim substring of `full`. These are named people's
+ * words. `full` is the whole quote, shown on /work, where each card links.
  */
 export interface Testimonial {
   id: "chi" | "transsnet" | "carlcare";
@@ -14,7 +17,8 @@ export interface Testimonial {
   logo: { src: string; width: number; height: number; alt: string };
   /** Real headshot, 2:2.4 or square, at least 400 px on the short side. Undefined until Q26 — the frame is reserved, not filled. */
   portrait?: { src: string; width: number; height: number };
-  pull: string;
+  /** One verbatim sentence from `full`. Never edited — see above. */
+  excerpt: string;
   full: string[];
 }
 
@@ -25,7 +29,7 @@ export const testimonials: Testimonial[] = [
     person: "Chidi Okonkwo",
     role: "General Manager",
     logo: { src: "/clients/carc.jpg", width: 160, height: 80, alt: "Carlcare" },
-    pull:
+    excerpt:
       "Total Data Limited has been our longstanding partner for over ten years, and our collaboration with them has been exceptional.",
     full: [
       "When Carlcare Development Nigeria Limited first started business in Nigeria, there were not the extensive Human Resources compliance requirements that there are today. Total Data Limited, our HR Partners, has assisted us by formalizing our policies and updating our employment records to make sure we meet these requirements. This has enabled Carlcare Development Nigeria Limited to focus on what we do best, providing after sales support and promotional services for TECNO Mobile, Infinix Mobility, Itel Mobile, Oraimo accessories, and we continue to provide good services to our customers.",
@@ -39,7 +43,7 @@ export const testimonials: Testimonial[] = [
     person: "Mr. Michael Kehinde",
     role: "Head, Supply Chain and Logistics",
     logo: { src: "/clients/chi-limited.jpg", width: 160, height: 80, alt: "Chi Limited" },
-    pull:
+    excerpt:
       "Their dedication, reliability, and adaptability have greatly contributed to the increased efficiency and productivity of our organization.",
     full: [
       "Total Data Limited has shown great passion in delivering people requirement. They have been instrumental in meeting our people needs.",
@@ -52,8 +56,8 @@ export const testimonials: Testimonial[] = [
     person: "Dorothy Akpati",
     role: "HR Business Partner",
     logo: { src: "/clients/transnet-music.jpg", width: 160, height: 80, alt: "Transsnet Music (Boomplay)" },
-    pull:
-      "They possess an impressive breadth of knowledge across various HR functions and are always up-to-date with current industry trends and regulations. This allows us to remain compliant.",
+    excerpt:
+      "Thank you once again for helping us optimize our HR operations and contributing significantly towards driving organizational success.",
     full: [
       "Our partnership with Total Data Limited goes back in years... And the experience has been nothing short of satisfactory!!!",
       "The exceptional HR service, the level of professionalism, expertise, and support you have consistently demonstrated has truly exceeded our expectations.",

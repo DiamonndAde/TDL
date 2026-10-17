@@ -9,6 +9,8 @@
  * in (docs/ANALYTICS-PROPOSAL.md §2).
  */
 
+import type { ServiceSlug } from "@/content/services";
+
 /** Form field identifiers. Names, never values — and a closed list so a typo cannot smuggle one in. */
 export type FieldName =
   // talent pool (/careers)
@@ -33,6 +35,9 @@ export type AnalyticsEvent =
   | { name: "enquiry_step_back"; step: 1 | 2 | 3 }
   | { name: "enquiry_submitted"; services_count: number; headcount_band: string }
   | { name: "enquiry_failed"; reason: FailureReason }
+  // --- the main call to action, "Partner with us" --------------------------------------------------------
+  // Opens WhatsApp. As with the ATS, we see the click and never the conversation that follows.
+  | { name: "whatsapp_clicked"; location: CtaLocation; service: ServiceSlug | "none" }
   // --- both forms -----------------------------------------------------------------------------------------
   | { name: "form_field_focused"; form: FormId; field: FieldName; index: number }
   | { name: "form_field_left"; form: FormId; field: FieldName; index: number; state: FieldState }
@@ -62,6 +67,9 @@ export type ValidationReason = "invalid" | "missing";
  * label text — see `experiment.ts`. "control" whenever the experiment is off, which is every build today.
  */
 export type CtaVariantName = "control" | "roles" | "apply";
+
+/** Where a "Partner with us" button was pressed. A closed list, like every other property here. */
+export type CtaLocation = "header" | "menu" | "hero" | "close" | "service_hero" | "service_close" | "contact" | "work";
 
 export type FormId = "talent_pool" | "enquiry";
 export type EventName = AnalyticsEvent["name"];

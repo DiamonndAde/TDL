@@ -593,3 +593,50 @@ decision, the earlier reasoning is noted so it is not re-argued.
   `src/lib/build-mode.ts`. Deliberately not a new flag — that one is already guarded in `next.config.ts` and
   already first on the launch checklist for removal. It is server-only, so client components such as the header
   receive what they need as props.
+
+## 2026-10-16 — TDL's review, part 2: "Partner with us" on WhatsApp, one careers page, a headline that says what TDL does, testimonial cards
+
+- **The main call to action is "Partner with us", and it opens WhatsApp** (`wa.me`, prefilled, new tab) to the
+  number in `facts.ts` — TODO(client) Q20, **now blocking for launch**, because every main button depends on it.
+  One shared component, `src/components/ui/partner-cta.tsx`, at all nine places "Become a client" was: header,
+  mobile menu, hero, home close, both CTAs on every service page, `/contact-us`, `/work`.
+  - The label is TDL's exactly. It does not say WhatsApp opens, which the copy rule asks a CTA to do, so the button
+    carries WhatsApp's glyph (Simple Icons, CC0, in the button's own colour, not WhatsApp green) and its
+    accessible name is "Partner with us on WhatsApp" — which contains the visible label, as WCAG 2.5.3 requires.
+  - The prefilled message is generic, except on a service page, where it names the service so TDL knows what the
+    conversation is about. No personal data.
+  - **"Prefer a form?"** sits beside it and goes to `/become-a-client`, pre-ticked with the service on service
+    pages. Not in the desktop header: the strip has no room, and every page body offers it.
+  - The separate "WhatsApp us" links in the home close and on service pages were removed: the main button is
+    WhatsApp now, so they duplicated it.
+  - **Analytics**: a new `whatsapp_clicked` event with `location` (a closed list) and `service` (a slug or "none").
+    As with the ATS, the site sees the click and never the conversation.
+  - `/become-a-client` and the `/new-client` redirect are unchanged; the form is now the secondary route.
+- **`/careers` is one page, open roles first** (TDL read "openings" and "careers" as duplicates). Order: the page
+  heading, then **Open roles** (one sentence, one button to the board), then **Talent pool** (the form), then the
+  firm's own words on working here. The hero no longer repeats the two routes as buttons — the sections below are
+  the routes. "Openings" is gone from every user-facing string; the button is "See open roles", and the two form
+  error messages point at "Open roles above". Nav, footer and home already had exactly one Careers entry each.
+- **Headline: "We run the HR. You run the business."** — TDL's own, with their two alternates in `facts.ts` (Q23).
+  The subline names the services, Nigeria and Benin Republic and "since 2000". The previous headline and its
+  headcount variant are retired. The home meta title and the site-wide description now match.
+- **Testimonials are three cards**, in a row from `lg`, stacked below, replacing the tablist. Each shows ONE
+  verbatim sentence from that person's own quote, as TDL chose them — **excerpted, never rewritten** — and links to
+  the whole quote on `/work#<company>`. All three were checked verbatim before use, and the boundary check now
+  fails if an excerpt stops being a verbatim substring of its full quote (proven: it caught a one-word rewording
+  and a single respelling, "optimize" → "optimise"). The section is now a server component, so it ships no
+  JavaScript. The card link is a plain ink link, not cyan — cyan is for people and live numbers. Its accessible
+  name, "Read the full quote from <name>", contains its visible text.
+- **Headline sentences each get their own line.** Wrapped freely, it broke as "We run the / HR. You run / the
+  business." — splitting "HR." from its sentence. Each sentence is now a block span, with a real space between
+  them so the heading's text still reads "…HR. You…" to screen readers and search.
+- **First-load JS:** `/` 13.0 → 12.0 KB own code (the testimonials no longer ship JavaScript); every other route
+  about +2 KB (`/privacy-policy` 1.5 → 3.6, `/careers` 35.4 → 37.9, `/become-a-client` 36.2 → 38.7), because the
+  header's "Partner with us" — the WhatsApp glyph, the click event and the analytics `track()` it needs — is now
+  in the shared header bundle on every page. Worst route 180.4 KB against 201.7.
+- **A testing bug found on the way: `scripts/verify.sh` was not building the shipping configuration.** It
+  `unset` the analytics variables, but Next loads `.env.local` itself at build time and applies a value from it
+  only when the variable is *absent* from the shell — so once the owner put the demo PostHog key in
+  `.env.local`, every "shipping" Tier 2/3 build quietly had analytics on with that key. Proven: one built chunk
+  carried the key with `unset`, none with the variables exported as empty strings, which is the fix. Earlier
+  Tier 2 results are unaffected — the key arrived after them.

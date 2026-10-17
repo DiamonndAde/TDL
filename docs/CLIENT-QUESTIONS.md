@@ -70,7 +70,7 @@ These came off totaldatalimited.com and can go in as real content. Still worth a
 | 26 | **Headshots of the three testimonial executives** — Chidi Okonkwo (Carlcare), Mr. Michael Kehinde (Chi Limited), Dorothy Akpati (Transsnet Music) — square or 4:5, ≥ 400 px. TDL to obtain with each person's permission, since they are the client's contacts | They are real executives vouching for TDL; the home page renders an 88 px portrait frame per person, reserved and empty until these arrive |
 | 27 | **One real photograph for the home page**, near the close: TDL's own team or the 69 Coker Road office. 16:9, ≥ 2,400 px wide | Reserved on the home page as a compact bordered note — "Photograph to come", the address, the format — not an empty 16:9 box. Not filled with anything else |
 | 19 | ISO 9001:2015 **certificate** and any operating **licences**. The Quality Policy and Quality Objectives PDFs were on the current site and are already published at `/documents/` | `/certifications` shows the badge, the two PDFs, and reserved rows reading "To come" for the certificate and licences |
-| 20 | **Form submissions — where do they go?** Email inbox, CRM, ATS? Also: does +234 818 546 1010 take WhatsApp? | The server action posts each enquiry as JSON to `FORM_WEBHOOK_URL` (`.env.example`) — any inbox/CRM/automation endpoint. Until it is set, production tells the visitor to use WhatsApp or the phone; nothing is silently lost |
+| 20 | **Form submissions — where do they go?** Email inbox, CRM, ATS? Also: does +234 818 546 1010 take WhatsApp? | The server action posts each enquiry as JSON to `FORM_WEBHOOK_URL` (`.env.example`) — any inbox/CRM/automation endpoint. Until it is set, production tells the visitor to use WhatsApp or the phone; nothing is silently lost **Update 2026-10-16: now blocking for launch.** The main call to action everywhere is "Partner with us", which opens WhatsApp to +234 818 546 1010 with a prefilled message. If that number does not take WhatsApp, every main button on the site leads nowhere. |
 
 ---
 
@@ -80,7 +80,7 @@ These came off totaldatalimited.com and can go in as real content. Still worth a
 |---|---|
 | 21 | Permission to name **Chi Limited**, **Carlcare Development Nigeria** and **Transsnet Music** in case studies — the testimonials are public, a case study is a stronger claim |
 | 22 | Permission to **correct typos inside the quotes** ("personned", "conisttently", "hgh level"). Never silently edit an attributed quote |
-| 23 | Approval of the new headline and any rewritten service copy |
+| 23 | Approval of the new headline and any rewritten service copy **Update 2026-10-16 — the hero headline TDL asked for:** "We run the HR. You run the business." (in use), with the alternates "HR, payroll and recruitment, run for you." and "Your people, managed end to end." in `src/content/facts.ts`. The subline names the services, Nigeria and Benin Republic and "since 2000"; the home page's meta title and the site description now match. Please confirm the default. |
 | 24 | Confirmation that all 15 logos are current clients with permission still in force |
 | 25 | Legal review of the NDPR privacy notice as carried over |
 

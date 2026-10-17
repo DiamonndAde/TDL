@@ -57,7 +57,7 @@ Marketing site for Total Data Limited — Nigerian HR and business process outso
 
 Lime `#A4CE3C` and red `#EA2126` from the logo are not tokens; they appear only inside the logo asset. Provisional until the logo lockup set arrives — `docs/CLIENT-QUESTIONS.md` Q16.
 
-**The `--signal` rule.** Cyan means *people or a live number*, nothing else: the Roster marks, counters while they count, the active service column, form progress. **The primary CTA does not use it.** `Become a client` is a filled `--paper` button with `--ink` text on dark grounds and a filled `--ink` button with `--paper` text on paper. If cyan appears on something that is not a person or a changing value, that is a bug.
+**The `--signal` rule.** Cyan means *people or a live number*, nothing else: the Roster marks, counters while they count, the active service column, form progress. **The primary CTA does not use it.** `Partner with us` (since 2026-10-16; it opens WhatsApp) is a filled `--paper` button with `--ink` text on dark grounds and a filled `--ink` button with `--paper` text on paper. If cyan appears on something that is not a person or a changing value, that is a bug.
 
 ## Type
 
@@ -92,7 +92,7 @@ A single `position: fixed` canvas behind the page holds one array of marks, one 
 **Accessibility** — build the reduced-motion branch as a first-class path, not a fallback:
 - `prefers-reduced-motion: reduce` kills all non-user-triggered motion including canvas drift and counters; the Roster renders each section's final state with tween duration 0
 - `Save-Data` serves a build-time static SVG per state
-- Services interaction, testimonial tablist and multi-step form fully keyboard operable, with visible focus
+- Services interaction, testimonial cards and multi-step form fully keyboard operable, with visible focus
 - AA contrast verified on the dark ground (ratios above)
 - Canvas is `aria-hidden="true"`; every state it depicts is also stated in text (the status line and section captions)
 
@@ -127,7 +127,7 @@ Before building any graphic, state the concept in one line and what information 
 
 ## Copy
 
-Plain verbs, sentence case, active voice. A CTA says what happens: `Become a client`, not `Submit`. Every service headline names what it removes from the buyer's plate. Cut the existing marketing abstraction. No meta strings joined with middle dots.
+Plain verbs, sentence case, active voice. A CTA says what happens: `Become a client`, not `Submit`. Where a client-chosen label does not (`Partner with us` opens WhatsApp), the button says it another way — the WhatsApp mark inside it and the accessible name "Partner with us on WhatsApp". Every service headline names what it removes from the buyer's plate. Cut the existing marketing abstraction. No meta strings joined with middle dots.
 
 ## Working style
 

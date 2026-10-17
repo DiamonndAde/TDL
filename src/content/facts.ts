@@ -10,8 +10,9 @@ export const company = {
   legalName: "Total Data Limited",
   incorporated: 2000,
   tagline: "professionalism anchored on integrity", // from the logo lockup; not used in copy until Q16 settles the lockup
+  // The site-wide meta description. Matches the hero headline (TDL review, 2026-10-16). TODO(client): Q23.
   description:
-    "Management consultancy — HR and business process outsourcing across Nigeria and Benin Republic, since 2000.",
+    "We run the HR so you can run the business: HR outsourcing, payroll, recruitment and business process outsourcing across Nigeria and Benin Republic, since 2000.",
   address: {
     street: "69 Coker Road",
     locality: "Ilupeju",
@@ -21,8 +22,18 @@ export const company = {
   email: "Info@totaldatalimited.com",
   phone: "+234 818 546 1010",
   phoneHref: "tel:+2348185461010",
-  // TODO(client): Q20 — confirm this number takes WhatsApp; the brief asks for WhatsApp as a first-class contact
+  // TODO(client): Q20 — confirm this number takes WhatsApp. Since 2026-10-16 it is the main call to action,
+  // "Partner with us", so this confirmation is now blocking for launch.
   whatsappHref: "https://wa.me/2348185461010",
+  /**
+   * The prefilled first message for "Partner with us". Generic everywhere except a service page, which names its
+   * service so TDL knows what the conversation is about before replying. No personal data — the visitor adds
+   * their own details in WhatsApp if they choose to.
+   */
+  whatsappMessage: {
+    general: "Hello Total Data Limited, I would like to talk about partnering with you.",
+    service: (serviceName: string) => `Hello Total Data Limited, I would like to talk about ${serviceName.toLowerCase()}.`,
+  },
   iso: "ISO 9001:2015",
   ndpr: "Nigeria Data Protection Regulations 2019",
   social: {
@@ -51,13 +62,15 @@ export const figures = {
   certified: { display: "ISO 9001:2015", label: "Certified" },
 } as const;
 
-/** Hero headline. Both variants are real copy; the default avoids the unconfirmed headcount. */
+/**
+ * Hero headline. TDL asked for a headline that says what TDL does (review, 2026-10-16); these three are theirs.
+ * TODO(client): Q23 — approval of the default and the two alternates. Swap the default by changing `default`.
+ * The sub names the services, the coverage and "since 2000" (Q2 — never a year count).
+ */
 export const headline = {
-  // Default until Q1 is confirmed. Chosen from three tenure variants — see DESIGN-DECISIONS.md.
-  default: "Every morning since 2000, our clients’ people have gone to work through us.",
-  // TODO(client): Q1 — switch to this once the headcount is confirmed.
-  withFigure: "5,000 people go to work for our clients every morning.",
-  sub: "End-to-end HR and business process outsourcing across Nigeria and Benin Republic.",
+  default: "We run the HR. You run the business.",
+  alternates: ["HR, payroll and recruitment, run for you.", "Your people, managed end to end."],
+  sub: "HR outsourcing, payroll, recruitment, training and business process outsourcing, across Nigeria and Benin Republic since 2000.",
 } as const;
 
 export const coverage = {

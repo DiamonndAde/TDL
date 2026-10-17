@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useId, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { PartnerCta } from "@/components/ui/partner-cta";
 import { company } from "@/content/facts";
 import { useRosterOptional } from "@/components/roster/roster-context";
 import { rosterStatusText } from "@/components/roster/states";
@@ -56,7 +56,8 @@ export function Header({ portal }: { portal: StaffPortalLink | null }) {
             </p>
           ) : null}
           {portal ? <PortalLink portal={portal} className="text-[15px]" /> : null}
-          <Button href="/become-a-client">Become a client</Button>
+          {/* No "Prefer a form?" here: the strip has no room, and every page body offers it beside its own button. */}
+          <PartnerCta location="header" showFormLink={false} />
         </div>
 
         <button
@@ -79,9 +80,7 @@ export function Header({ portal }: { portal: StaffPortalLink | null }) {
             </Link>
           ))}
           <div className="mt-3 flex flex-col gap-3">
-            <Button href="/become-a-client" className="w-full">
-              Become a client
-            </Button>
+            <PartnerCta location="menu" fullWidth />
             {portal ? <PortalLink portal={portal} className="py-1 text-[15px]" /> : null}
             <a href={company.phoneHref} className="data text-olive">
               Call {company.phone}

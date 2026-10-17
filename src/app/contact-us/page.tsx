@@ -1,5 +1,5 @@
+import { PartnerCta } from "@/components/ui/partner-cta";
 import type { Metadata } from "next";
-import { Button } from "@/components/ui/button";
 import { Container } from "@/components/layout/container";
 import { Register } from "@/components/layout/register";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -62,13 +62,11 @@ export default function ContactPage() {
         </Container>
       </section>
 
-      <Register id="become" title="New client?" note="Three short steps">
+      <Register id="become" title="New client?" note="WhatsApp, or a three-step form">
         <p className="max-w-[36em] text-[1.0625rem]">
           Tell us which services you need and how many people are involved. {process.responsePromise}
         </p>
-        <div className="mt-6">
-          <Button href="/become-a-client">Become a client</Button>
-        </div>
+        <PartnerCta location="contact" className="mt-6" />
       </Register>
     </main>
   );

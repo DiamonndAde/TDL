@@ -36,7 +36,7 @@ const archivoExpanded = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL(company.siteUrl),
   title: {
-    default: "Total Data Limited — HR and business process outsourcing, Nigeria and Benin Republic",
+    default: "Total Data Limited — We run the HR. You run the business.",
     template: "%s — Total Data Limited",
   },
   description: company.description,

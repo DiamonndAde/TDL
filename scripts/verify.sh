@@ -22,9 +22,13 @@ export MSYS_NO_PATHCONV=1
 export PYTHONIOENCODING=utf-8
 # .env.local turns placeholders on for presentations; the build that gets verified is the shipping one.
 export PLACEHOLDER_IMAGES=false
-unset PLACEHOLDER_PRESENTATION_BUILD PRESENTATION_HIDE_EMPTY_FRAMES NEXT_PUBLIC_POSTHOG_KEY NEXT_PUBLIC_POSTHOG_HOST \
-      NEXT_PUBLIC_ANALYTICS_REPLAY_SAMPLE NEXT_PUBLIC_ANALYTICS_REPLAY_ENQUIRY NEXT_PUBLIC_ANALYTICS_SURVEYS \
-      NEXT_PUBLIC_ANALYTICS_EXPERIMENTS 2>/dev/null
+# Set to EMPTY, never unset. Next loads .env.local itself at build time and applies a value from it only when the
+# variable is absent from the shell (@next/env: `typeof process.env[key] === "undefined"`); an empty string counts
+# as present and wins. `unset` let the PostHog key in .env.local through, so "shipping" builds were quietly built
+# with analytics on and the demo key — found 2026-10-17: 1 chunk carried the key with `unset`, 0 with this.
+export PLACEHOLDER_PRESENTATION_BUILD= PRESENTATION_HIDE_EMPTY_FRAMES= NEXT_PUBLIC_POSTHOG_KEY= NEXT_PUBLIC_POSTHOG_HOST= \
+       NEXT_PUBLIC_ANALYTICS_REPLAY_SAMPLE= NEXT_PUBLIC_ANALYTICS_REPLAY_ENQUIRY= NEXT_PUBLIC_ANALYTICS_SURVEYS= \
+       NEXT_PUBLIC_ANALYTICS_EXPERIMENTS= NEXT_PUBLIC_SITE_URL=
 
 WORK="$(mktemp -d 2>/dev/null || echo "${TMPDIR:-/tmp}/tdl-verify-$$")"
 mkdir -p "$WORK"
@@ -115,7 +119,7 @@ if step "production build (analytics on, against the stub)" build; then
         bash scripts/serve-and-run.sh python scripts/masking-proof.py "$WORK/capture.bin"
 fi
 kill "$STUB" 2>/dev/null; kill_port 3132
-unset NEXT_PUBLIC_POSTHOG_KEY NEXT_PUBLIC_POSTHOG_HOST NEXT_PUBLIC_ANALYTICS_REPLAY_SAMPLE NEXT_PUBLIC_ANALYTICS_REPLAY_ENQUIRY
+export NEXT_PUBLIC_POSTHOG_KEY= NEXT_PUBLIC_POSTHOG_HOST= NEXT_PUBLIC_ANALYTICS_REPLAY_SAMPLE= NEXT_PUBLIC_ANALYTICS_REPLAY_ENQUIRY=
 
 # Put the shipping build back, so nothing afterwards serves a test configuration.
 step "restore shipping build" build

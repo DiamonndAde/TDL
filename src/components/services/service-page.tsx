@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { PartnerCta } from "@/components/ui/partner-cta";
 import { Container } from "@/components/layout/container";
 import { Register } from "@/components/layout/register";
 import { ActiveColumn } from "@/components/roster/active-column";
@@ -36,8 +36,10 @@ export function ServicePage({ service }: { service: Service }) {
               </h1>
               <p className="mt-6 max-w-[36em] text-[1.0625rem] text-olive md:text-[1.125rem]">{service.lead}</p>
               <div className="mt-9">
-                <Button href={`/become-a-client?service=${service.slug}`}>Become a client</Button>
-                <p className="data mt-3 text-olive">Step 1 of the form will already have {service.name.toLowerCase()} ticked.</p>
+                <PartnerCta location="service_hero" service={{ slug: service.slug, name: service.name }} />
+                <p className="data mt-3 text-olive">
+                  Opens WhatsApp with a message about {service.name.toLowerCase()}. The form arrives with it already ticked.
+                </p>
               </div>
             </div>
             <div>
@@ -75,11 +77,8 @@ export function ServicePage({ service }: { service: Service }) {
               Tell us how many people are involved. {process.responsePromise}
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-6">
-              <Button href={`/become-a-client?service=${service.slug}`}>Become a client</Button>
+              <PartnerCta location="service_close" service={{ slug: service.slug, name: service.name }} />
               <p className="data flex gap-5 text-ink-light">
-                <a href={company.whatsappHref} rel="noopener" target="_blank" className="text-paper underline underline-offset-4">
-                  WhatsApp us
-                </a>
                 <a href={company.phoneHref} className="text-paper underline underline-offset-4">
                   Call {company.phone}
                 </a>

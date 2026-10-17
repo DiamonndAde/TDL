@@ -117,6 +117,29 @@ for (const file of ["src/components/careers/application-form.tsx", "src/componen
   }
 }
 
+// ---------------------------------------------------------------- content integrity: quotes
+// Attributed quotes are named people's words. The home page shows one sentence from each, EXCERPTED, never
+// rewritten (TDL review, 2026-10-16); this fails if an excerpt stops being a verbatim substring of the full quote
+// it came from — a reworded excerpt, a "fixed" typo, a changed spelling. AGENTS.md: never silently edit a quote.
+{
+  const src = readFileSync(join(root, "src", "content", "testimonials.ts"), "utf8");
+  // Each testimonial object starts at an `id:` line; take the text up to the next one.
+  const starts = [...src.matchAll(/^\s*id:\s*"([a-z]+)",/gm)];
+  const quoted = /"((?:[^"\\]|\\.)*)"/g;
+  let checked = 0;
+  for (const [i, m] of starts.entries()) {
+    const block = src.slice(m.index, starts[i + 1]?.index ?? src.length);
+    const id = m[1];
+    const excerpt = block.match(/excerpt:\s*"((?:[^"\\]|\\.)*)"/)?.[1];
+    const fullBlock = block.match(/full:\s*\[([\s\S]*?)\]/)?.[1];
+    if (!excerpt || !fullBlock) continue;
+    const full = [...fullBlock.matchAll(quoted)].map((q) => q[1]).join(" ");
+    checked++;
+    if (!full.includes(excerpt)) failures.push(`testimonial "${id}": the excerpt is not a verbatim sentence of the full quote — excerpts are never reworded`);
+  }
+  if (checked < 3) failures.push(`expected to check three testimonial excerpts, checked ${checked} — the content file's shape changed`);
+}
+
 const index = stripComments(readFileSync(join(root, ADAPTER_DIR, "index.ts"), "utf8"));
 if (/export\s+\*\s+from\s+["']\.\/(zoho|webhook|none)["']/.test(index)) {
   failures.push(`${ADAPTER_DIR}/index.ts re-exports an adapter wholesale; callers would bypass the interface`);
@@ -126,4 +149,4 @@ if (failures.length) {
   console.error("Boundary check FAILED:\n" + failures.map((f) => "  " + f).join("\n"));
   process.exit(1);
 }
-console.log(`Boundaries ok: nothing outside ${ADAPTER_DIR} is wired to a provider, no candidate data is stored, no visitor is identified, and analytics masking is in force.`);
+console.log(`Boundaries ok: nothing outside ${ADAPTER_DIR} is wired to a provider, no candidate data is stored, no visitor is identified, analytics masking is in force, and every quote excerpt is verbatim.`);

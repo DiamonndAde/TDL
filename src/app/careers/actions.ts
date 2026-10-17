@@ -44,10 +44,10 @@ export async function submitApplication(data: Application): Promise<ApplyResult>
   if (!created.ok) {
     if (created.reason === "unconfigured") {
       console.error(`[application] ${provider.name} is not configured: ${created.detail ?? ""}`);
-      return { ok: false, error: "The form is not connected yet. Apply through the openings page instead.", reason: "unconfigured" };
+      return { ok: false, error: "The form is not connected yet. Apply through Open roles above instead.", reason: "unconfigured" };
     }
     console.error(`[application] ${provider.name} delivery failed: ${created.detail ?? ""}`);
-    return { ok: false, error: "We could not send this just now. Try again, or apply through the openings page.", reason: "delivery" };
+    return { ok: false, error: "We could not send this just now. Try again, or apply through Open roles above.", reason: "delivery" };
   }
 
   // The answers that have no field of their own go on as a note, so a renamed custom field cannot swallow them.

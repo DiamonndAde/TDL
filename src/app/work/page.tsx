@@ -1,6 +1,6 @@
+import { PartnerCta } from "@/components/ui/partner-cta";
 import type { Metadata } from "next";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { Container } from "@/components/layout/container";
 import { Register } from "@/components/layout/register";
 import { caseStudies, testimonials } from "@/content/testimonials";
@@ -83,9 +83,7 @@ export default function WorkPage() {
             <h2 id="work-close" className="display max-w-[16ch] text-[1.75rem] md:text-[2.25rem]">
               Your account could be the fourth.
             </h2>
-            <div className="mt-8">
-              <Button href="/become-a-client">Become a client</Button>
-            </div>
+            <PartnerCta location="work" className="mt-8" />
           </div>
         </Container>
       </section>

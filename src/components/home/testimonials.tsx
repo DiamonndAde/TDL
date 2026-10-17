@@ -1,124 +1,68 @@
-"use client";
-
 import Image from "next/image";
-import { useId, useRef, useState } from "react";
+import Link from "next/link";
 import { Register } from "@/components/layout/register";
 import { Monogram } from "@/components/ui/monogram";
 import { testimonials } from "@/content/testimonials";
 
 /**
- * Testimonials. The attribution list is the control: three named executives as a tablist, one quote shown large
- * in the voice setting. The proof — who said it, at which company, with their face — is the interface. Arrow keys move between
- * tabs (automatic activation); "Read the full quote" expands the whole testimonial. Quotes are verbatim,
- * including the original typos, until Q22 permits corrections.
- */
-/**
- * `monograms` is the placeholder flag, passed from the server page; it fills empty portrait frames with initials.
- * `hideEmpty` is PRESENTATION_HIDE_EMPTY_FRAMES: an empty portrait frame is left out rather than reserved.
+ * Testimonials: three cards, in one row on desktop and stacked on phones (TDL's review, 2026-10-16 — this
+ * replaces the earlier tablist). Each card shows ONE verbatim sentence from that person's own quote — excerpted,
+ * never rewritten, because these are named people's words — and links to the whole quote on /work, so the
+ * excerpting is always one click from the full text. The boundary check fails if an excerpt stops being a verbatim
+ * substring of its full quote.
+ *
+ * A server component now: nothing here is interactive, so the section ships no JavaScript (the tablist did).
+ * Flat bordered cards, no shadow and no hover-lift (AGENTS.md).
+ *
+ * Portraits: a real headshot of the executive when supplied (Q26); behind the presentation flag an initials
+ * monogram — never a face, stock or generated, under a real name; otherwise the reserved frame.
  */
 export function Testimonials({ monograms = false, hideEmpty = false }: { monograms?: boolean; hideEmpty?: boolean }) {
-  const [index, setIndex] = useState(0);
-  const [full, setFull] = useState(false);
-  const tabs = useRef<(HTMLButtonElement | null)[]>([]);
-  const baseId = useId();
-  const t = testimonials[index];
-
-  const select = (i: number) => {
-    setIndex(i);
-    setFull(false);
-    tabs.current[i]?.focus();
-  };
-  const onKey = (e: React.KeyboardEvent, i: number) => {
-    const n = testimonials.length;
-    if (e.key === "ArrowDown" || e.key === "ArrowRight") { e.preventDefault(); select((i + 1) % n); }
-    else if (e.key === "ArrowUp" || e.key === "ArrowLeft") { e.preventDefault(); select((i - 1 + n) % n); }
-    else if (e.key === "Home") { e.preventDefault(); select(0); }
-    else if (e.key === "End") { e.preventDefault(); select(n - 1); }
-  };
-
   return (
     <Register id="testimonials" title="In their words" note="Three clients, quoted">
-      <div className="grid gap-8 lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-14">
-        <div
-          role="tabpanel"
-          id={`${baseId}-panel`}
-          aria-labelledby={`${baseId}-tab-${index}`}
-          className="min-w-0"
-        >
-          <blockquote className="voice max-w-[28em] text-[1.5rem] md:text-[1.875rem]">
-            <p>&ldquo;{t.pull}&rdquo;</p>
-          </blockquote>
-          <div
-            className="grid transition-[grid-template-rows] duration-200 ease-out"
-            style={{ gridTemplateRows: full ? "1fr" : "0fr" }}
-          >
-            <div className="overflow-hidden">
-              <div className="max-w-[60ch] space-y-4 pt-6 text-[15px] leading-relaxed text-olive">
-                {t.full.map((para, i) => (
-                  <p key={i}>{para}</p>
-                ))}
-              </div>
-            </div>
-          </div>
-          <button
-            type="button"
-            aria-expanded={full}
-            onClick={() => setFull((v) => !v)}
-            className="mt-6 text-[15px] text-signal-deep underline underline-offset-4"
-          >
-            {full ? "Hide the full quote" : "Read the full quote"}
-          </button>
-        </div>
-
-        <div role="tablist" aria-label="Who is speaking" aria-orientation="vertical" className="border-t border-olive lg:order-first lg:border-t-0">
-          {testimonials.map((item, i) => {
-            const selected = i === index;
-            return (
-              <button
-                key={item.id}
-                ref={(el) => { tabs.current[i] = el; }}
-                role="tab"
-                id={`${baseId}-tab-${i}`}
-                aria-selected={selected}
-                aria-controls={`${baseId}-panel`}
-                tabIndex={selected ? 0 : -1}
-                onClick={() => select(i)}
-                onKeyDown={(e) => onKey(e, i)}
-                className={`flex w-full items-start gap-4 border-b border-olive py-4 text-left transition-colors duration-150 ${
-                  selected ? "text-ink" : "text-olive hover:text-ink"
-                }`}
-              >
-                {/* Portrait: a real headshot of the executive, 88 px, reserved until Q26. With placeholders on it
-                    shows an initials monogram — never a face, stock or generated, under a real name. An unselected
-                    portrait dims to 70%; the reserved "Portrait to come" text does not, because olive at 70% on
-                    paper is 3.2:1 and text has to hold 4.5:1. */}
-                {item.portrait || monograms || !hideEmpty ? (
-                  <span
-                    className={`flex h-[88px] w-[88px] shrink-0 items-center justify-center border border-olive ${selected || !(item.portrait || monograms) ? "" : "opacity-70"}`}
-                    data-todo="Q26"
-                  >
-                    {item.portrait ? (
-                      <Image src={item.portrait.src} alt={`${item.person}, ${item.role}, ${item.company}`} width={item.portrait.width} height={item.portrait.height} className="h-full w-full object-cover" />
-                    ) : monograms ? (
-                      <Monogram name={item.person} size={86} />
-                    ) : (
-                      <span className="data px-2 text-center text-olive">Portrait to come</span>
-                    )}
-                  </span>
-                ) : null}
-                <span className="min-w-0">
-                  <span className="block text-[15px] font-medium">{item.person}</span>
-                  <span className="data block">{item.role}</span>
-                  <span className="mt-1.5 flex items-center gap-2">
-                    <Image src={item.logo.src} alt="" width={item.logo.width} height={item.logo.height} className={`h-6 w-10 object-contain object-left mix-blend-multiply ${selected ? "" : "grayscale"}`} />
-                    <span className="data">{item.company}</span>
-                  </span>
+      <ul className="grid gap-6 lg:grid-cols-3">
+        {testimonials.map((t) => (
+          <li key={t.id} className="flex flex-col border border-olive p-6 md:p-7">
+            <blockquote className="voice flex-1 text-[1.1875rem] leading-snug md:text-[1.3125rem]">
+              <p>&ldquo;{t.excerpt}&rdquo;</p>
+            </blockquote>
+            {/* A fixed minimum height, so the rule above each attribution lines up across the row however many
+                lines a role or company name wraps to. */}
+            <div className="mt-6 flex min-h-[6.5rem] items-start gap-4 border-t border-olive pt-5">
+              {t.portrait || monograms || !hideEmpty ? (
+                <span className="flex h-16 w-16 shrink-0 items-center justify-center border border-olive" data-todo="Q26">
+                  {t.portrait ? (
+                    <Image
+                      src={t.portrait.src}
+                      alt={`${t.person}, ${t.role}, ${t.company}`}
+                      width={t.portrait.width}
+                      height={t.portrait.height}
+                      sizes="64px"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : monograms ? (
+                    <Monogram name={t.person} size={62} />
+                  ) : (
+                    <span className="data px-1 text-center text-[11px] leading-tight text-olive">Portrait to come</span>
+                  )}
                 </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+              ) : null}
+              <p className="min-w-0">
+                <span className="block text-[15px] font-medium">{t.person}</span>
+                <span className="data block text-olive">{t.role}</span>
+                <span className="data block text-olive">{t.company}</span>
+              </p>
+            </div>
+            <Link
+              href={`/work#${t.id}`}
+              className="mt-5 self-start text-[15px] underline underline-offset-4 decoration-1 hover:decoration-2"
+              aria-label={`Read the full quote from ${t.person}`}
+            >
+              Read the full quote
+            </Link>
+          </li>
+        ))}
+      </ul>
     </Register>
   );
 }

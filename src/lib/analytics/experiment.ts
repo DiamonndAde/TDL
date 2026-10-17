@@ -13,7 +13,7 @@ import { getFeatureFlag } from "./index";
  * request: disabling it also disables the remote config that turns session replay on — see `index.ts`.) TDL turns it
  * on by setting that variable and creating the flag in PostHog; nothing here needs changing.
  *
- * The control wording stays first in the list on purpose: if PostHog is unreachable, the flag is missing, the
+ * The control wording ("See open roles") stays first in the list on purpose: if PostHog is unreachable, the flag is missing, the
  * visitor declined analytics, or the request is slow, the button says what it says today rather than flickering
  * to a variant and back. A CTA that changes under the reader is worse than no experiment.
  */
@@ -21,9 +21,10 @@ export const CTA_FLAG = "careers-cta";
 
 /** Keyed by the event contract's own type, so the two cannot drift apart. */
 export const ctaVariants: Record<CtaVariantName, string> = {
-  control: "See current openings",
-  /** Names the thing being offered rather than the act of looking. */
-  roles: "See open roles",
+  // Since 2026-10-16 the page calls them "open roles" everywhere (TDL read "openings" and "careers" as duplicates).
+  control: "See open roles",
+  /** Shorter; names the browsing rather than the list. */
+  roles: "Browse roles",
   /** Names the action rather than the browsing — the hypothesis, not a finding. */
   apply: "Find a role and apply",
 };

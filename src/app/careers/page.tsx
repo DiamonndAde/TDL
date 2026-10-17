@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Button } from "@/components/ui/button";
 import { Container } from "@/components/layout/container";
 import { Register } from "@/components/layout/register";
 import { ApplicationForm } from "@/components/careers/application-form";
@@ -17,10 +16,15 @@ export const metadata: Metadata = {
 };
 
 /**
- * The job-seeker funnel, kept apart from the client funnel (brief §2). Openings live in TDL's own applicant
- * tracking system — an existing system, linked rather than duplicated (Q14, HANDOFF.md) — and the board URL
- * comes from the recruitment adapter, so this page names no provider. The talent-pool form is for people whose
- * role is not listed. Diversity and perks text is the current site's own.
+ * The job-seeker funnel, kept apart from the client funnel (brief §2). One page, two routes, in the order TDL
+ * asked for (review, 2026-10-16): **open roles first**, then **the talent pool** for people whose role is not
+ * listed, then the firm's own words on working here. TDL read "openings" and "careers" as duplicates, so the
+ * page says "open roles" once, in one place, and the hero no longer repeats the two routes as buttons — the
+ * sections below are the routes.
+ *
+ * Open roles live in TDL's own applicant tracking system — linked rather than duplicated (Q14, HANDOFF.md) — and
+ * the board URL comes from the recruitment adapter, so this page names no provider. Diversity and perks text is
+ * the current site's own.
  */
 export default function CareersPage() {
   // Decorated by the adapter with a source marker when one is configured (Q29f).
@@ -34,7 +38,7 @@ export default function CareersPage() {
         <Container className={`py-14 md:py-20 lg:grid ${columns} lg:gap-10`}>
           <div className="mb-6 lg:mb-0">
             <p className="text-[15px] font-medium">Careers</p>
-            <p className="data mt-1.5 max-w-[12rem] text-olive">For people looking for work. Clients: see Become a client.</p>
+            <p className="data mt-1.5 max-w-[12rem] text-olive">For people looking for work.</p>
           </div>
           <div>
             <h1 id="careers-title" className="display max-w-[16ch] text-[2rem] md:text-[2.5rem] lg:text-[2.75rem]">
@@ -42,23 +46,9 @@ export default function CareersPage() {
             </h1>
             <p className="mt-6 max-w-[36em] text-[1.0625rem] text-olive md:text-[1.125rem]">
               {board
-                ? "Current openings are listed on our recruitment portal. If your role is not there, join the talent pool below and we will contact you when one matches."
+                ? "Apply for a role that is open now, or join the talent pool and we will contact you when one matches."
                 : "Join the talent pool below and we will contact you when a role matches."}
             </p>
-            {/* With a board, it leads and the talent pool is the secondary route; without one, the talent pool
-                is the only way in and takes the button. */}
-            <div className="mt-8 flex flex-wrap items-center gap-6">
-              {board ? (
-                <>
-                  <OpeningsLink href={board} />
-                  <a href="#talent-pool" className="text-[15px] underline underline-offset-4">
-                    Join the talent pool
-                  </a>
-                </>
-              ) : (
-                <Button href="#talent-pool">Join the talent pool</Button>
-              )}
-            </div>
           </div>
           {/* No caption: a careers page image needs no claim about whose staff these are. */}
           {showPhoto ? (
@@ -77,6 +67,28 @@ export default function CareersPage() {
         </Container>
       </section>
 
+      {/* 1. Open roles — first, as TDL asked. Without a board configured the section is left out and the talent
+          pool is the only route. */}
+      {board ? (
+        <Register id="open-roles" title="Open roles" note="Apply on our recruitment portal">
+          <p className="max-w-[36em] text-[1.0625rem]">
+            Every role we are hiring for, at TDL and at the companies whose people we run, is listed on our recruitment
+            portal. You apply there.
+          </p>
+          <div className="mt-6">
+            <OpeningsLink href={board} />
+          </div>
+        </Register>
+      ) : null}
+
+      {/* 2. The talent pool. */}
+      <Register id="talent-pool" title="Talent pool" note="If your role is not listed">
+        <div className="max-w-[40rem]">
+          <ApplicationForm />
+        </div>
+      </Register>
+
+      {/* 3. In the firm's own words. */}
       <Register id="working-here" title="Working here" note="In the firm's own words">
         <dl className="max-w-[42rem] border-t border-olive">
           <div className="border-b border-olive py-5">
@@ -88,12 +100,6 @@ export default function CareersPage() {
             <dd className="mt-2 text-[15px] leading-relaxed">{careers.perks}</dd>
           </div>
         </dl>
-      </Register>
-
-      <Register id="talent-pool" title="Talent pool" note="If your role is not listed">
-        <div className="max-w-[40rem]">
-          <ApplicationForm />
-        </div>
       </Register>
     </main>
   );

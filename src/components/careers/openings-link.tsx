@@ -13,7 +13,7 @@ import { useCtaVariant } from "@/lib/analytics/experiment";
  * is or how that provider spells "source".
  *
  * The wording is the subject of a prepared, switched-off experiment. With experiments off — every environment
- * today — `useCtaVariant()` returns the control and the button reads "See current openings", server-rendered
+ * today — `useCtaVariant()` returns the control and the button reads "See open roles", server-rendered
  * and unchanging. The variant is attached to the click event so the experiment can be read from the funnel
  * rather than only from PostHog's own experiment view.
  */
