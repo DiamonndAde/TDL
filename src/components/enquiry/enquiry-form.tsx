@@ -10,6 +10,7 @@ import { services, type ServiceSlug } from "@/content/services";
 import { submitEnquiry, type SubmitResult } from "@/app/become-a-client/actions";
 import { track } from "@/lib/analytics/track";
 import { useFieldTracking } from "@/lib/analytics/use-field-tracking";
+import { inSentence } from "@/lib/text";
 import type { FieldName } from "@/lib/analytics/events";
 import {
   arrangementOptions,
@@ -316,7 +317,7 @@ function Success({ services: chosen }: { services: ServiceSlug[] }) {
         <li className="grid grid-cols-[2rem_1fr] border-b border-olive py-4">
           <span className="data text-olive">2</span>
           <span>
-            We talk through {names.length ? names.join(", ").toLowerCase() : "what you need"} and the people involved.
+            We talk through {names.length ? names.map((n) => (n ? inSentence(n) : "")).join(", ") : "what you need"} and the people involved.
           </span>
         </li>
         {/* TODO(client): Q12 — a fuller process (scoping session, proposal inside five working days) needs the

@@ -9,10 +9,11 @@ import Link from "next/link";
  *    has a transparent ground. Its lime and red stay inside the logo asset, as AGENTS.md requires; text that is
  *    part of a logo is exempt from WCAG contrast. The original file is still owed (CLIENT-QUESTIONS.md Q16) —
  *    this is the same PNG as on their current site.
- *  - `mark` — the people-mark cropped from the same PNG, with the name set in type. Used on navy (the footer),
- *    where the olive wordmark is 2.5:1 and would not read.
+ *    48 px tall on phones, 58 px from md, so the tagline under the wordmark is legible (TDL review, 2026-10-17).
+ *  - `panel` — the same full lockup on a small paper panel, for navy grounds (the footer). The olive wordmark is
+ *    2.5:1 on navy; on its own paper it reads, and the logo stays exactly as supplied.
  */
-export function Logo({ variant = "full", className = "" }: { variant?: "full" | "mark"; className?: string }) {
+export function Logo({ variant = "full", className = "" }: { variant?: "full" | "panel"; className?: string }) {
   if (variant === "full") {
     return (
       <Link href="/" className={`inline-flex items-center ${className}`} aria-label="Total Data Limited, home">
@@ -21,19 +22,20 @@ export function Logo({ variant = "full", className = "" }: { variant?: "full" | 
           alt=""
           width={885}
           height={268}
-          sizes="152px"
+          sizes="192px"
           priority
-          className="h-10 w-auto md:h-11"
+          className="h-12 w-auto md:h-[3.625rem]"
         />
       </Link>
     );
   }
   return (
-    <Link href="/" className={`inline-flex items-center gap-3 ${className}`} aria-label="Total Data Limited, home">
-      <span className="relative block h-9 w-[34px] overflow-hidden" aria-hidden="true">
-        <Image src="/brand/logo.png" alt="" width={885} height={268} sizes="120px" className="absolute left-0 top-0 h-9 w-auto max-w-none" />
-      </span>
-      <span className="text-[15px] font-medium leading-none">Total Data Limited</span>
+    <Link
+      href="/"
+      className={`inline-flex items-center rounded-[2px] bg-paper px-3 py-2.5 ${className}`}
+      aria-label="Total Data Limited, home"
+    >
+      <Image src="/brand/logo.png" alt="" width={885} height={268} sizes="192px" className="h-12 w-auto md:h-[3.625rem]" />
     </Link>
   );
 }

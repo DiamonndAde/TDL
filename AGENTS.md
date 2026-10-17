@@ -67,14 +67,14 @@ Lime `#A4CE3C` and red `#EA2126` from the logo are not tokens; they appear only 
 |---|---|---|
 | Display: hero, section headlines, proof figures | Archivo Expanded (`.display`) | 700 |
 | Body and UI | Archivo | 400–500 |
-| Data: status line, captions, table labels, footer (`.data`) | Archivo, 13px | 400–500 |
+| Data: captions, table labels, footer (`.data`) | Archivo, 13px | 400–500 |
 | Voice: testimonials and the MD's garden quote, large, loose leading (`.voice`) | Archivo | 300 |
 
 `font-variant-numeric: tabular-nums` globally — numbers are this company's product and must align in columns. Body line length under 75 characters. Sentence case everywhere. **Checkpoint at milestone 4:** show the garden quote and testimonials at final size; if they read like a system message rather than a person, add one serif scoped to quotes only. No second family before then.
 
 ## The one motion idea
 
-A single `position: fixed` canvas behind the page holds one array of marks, one per managed employee, that **reconfigures** on scroll and never re-enters: drifting population → tabular grid → map of Nigeria and Benin → seven service columns → lifecycle path → the TDL mark. Each section owns a placeholder that reserves layout (no CLS) and the canvas computes targets from its rect. The header status line states the current state in text. Everything else on the page stays quiet. Motion outside the canvas happens only in response to a user action — so **no marquee, no section entrances, no hover-lift.** The hero headline's SplitText reveal is the one text animation, and it must not delay LCP: render the text, then split.
+A single `position: fixed` canvas behind the page holds one array of marks, one per managed employee, that **reconfigures** on scroll and never re-enters: drifting population → tabular grid → map of Nigeria and Benin → seven service columns → lifecycle path → the TDL mark. Each section owns a placeholder that reserves layout (no CLS) and the canvas computes targets from its rect. Each section's caption states the current state in text (the header status line was removed 2026-10-17: its changing length made the nav jump). Everything else on the page stays quiet. Motion outside the canvas happens only in response to a user action — so **no marquee, no section entrances, no hover-lift.** The hero headline's SplitText reveal is the one text animation, and it must not delay LCP: render the text, then split.
 
 **One logged client exception: the home photograph slider auto-advances** (TDL review, 2026-10-16, item 8 — their request, not a design change; `docs/DESIGN-DECISIONS.md` 2026-10-17). It is bounded and the bounds are the rule: 6 s per slide, only after first paint and while on screen; a visible Pause button; pauses while hovered or while focus is inside; **never under `prefers-reduced-motion`** (no timer, no Pause button). Swipe is native scroll-snap. It is not a precedent: nothing else on the site moves on its own.
 
@@ -96,7 +96,7 @@ A single `position: fixed` canvas behind the page holds one array of marks, one 
 - `Save-Data` serves a build-time static SVG per state
 - Services interaction, testimonial cards and multi-step form fully keyboard operable, with visible focus
 - AA contrast verified on the dark ground (ratios above)
-- Canvas is `aria-hidden="true"`; every state it depicts is also stated in text (the status line and section captions)
+- Canvas is `aria-hidden="true"`; every state it depicts is also stated in text (the section captions, visible at every width)
 
 **Content integrity** — never invent a statistic, outcome, percentage or client name. Every number and claim, including the hero headline's figure, lives in `src/content/facts.ts`, each tagged `// TODO(client): Q<n>` pointing at a row in `docs/CLIENT-QUESTIONS.md`. Add a row if one doesn't exist. Use "since 2000", not a year count (Q2). Even map density, no named hotspots, no "36 states + FCT" (Q7, Q8).
 

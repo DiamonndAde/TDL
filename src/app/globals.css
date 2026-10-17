@@ -42,15 +42,15 @@
     line-height: 1.5;
   }
 
-  /* The header is sticky (4rem, 4.5rem from md). Anything that can be scrolled to — an anchor, the skip link's
+  /* The header is sticky (4.5rem, 5.25rem from md — taller since 2026-10-17 for the larger logo). Anything that can be scrolled to — an anchor, the skip link's
      #main, a focused field — stops below it rather than underneath it. Lenis owns the scroll, but native
      anchor jumps and scrollIntoView both honour scroll-margin. */
   :where([id]) {
-    scroll-margin-top: 5rem;
+    scroll-margin-top: 5.5rem;
   }
   @media (min-width: 48rem) {
     :where([id]) {
-      scroll-margin-top: 5.5rem;
+      scroll-margin-top: 6.25rem;
     }
   }
 

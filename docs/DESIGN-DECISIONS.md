@@ -705,3 +705,29 @@ decision, the earlier reasoning is noted so it is not re-argued.
   failed three checks (auto-advanced, showed Pause, and "Next" landed one slide on); restored, it passed. The guard
   test's stock-file check was widened from `/placeholders/pexels` to `/placeholders/` (Unsplash files exist now)
   and seen to fail on a planted Unsplash reference.
+
+## 2026-10-17 — TDL review round 2, part 1: header without the status line, larger logo, footer lockup, Paytrail login
+
+- **The header status line is gone.** Its text changed length with every Roster state, so the nav beside it
+  shifted sideways and, at some widths, wrapped to two lines. The state is already stated in each section's
+  caption; the hero, proof and close captions used to be `lg:hidden` because the header said it on desktop, and now
+  show at every width. AGENTS.md's accessibility rule now names the captions alone. The canvas carries
+  `data-state` as the test hook (`scripts/harden.py` checks it follows a scroll under reduced motion, and that all
+  six captions are visible text).
+- **Logo 58 px tall from `md`, 48 px on phones** (was 44 / 40), so the tagline under the wordmark is legible. The
+  header grew to 84 / 72 px; `scroll-margin-top` moved to 100 / 88 px so anchors still land below it.
+- **Footer: the full lockup on a small paper panel**, replacing the cropped mark plus typed name. The logo stays
+  exactly as supplied; the panel is what lets the olive wordmark read on navy.
+- **Staff portal: `https://paytrail-tdl.com/login`**, "Paytrail staff login" in the header and "Paytrail staff
+  login portal" in the footer, new tab, on the live site. The `/staff-portal` holding page and the demo-only branch
+  are deleted. The labels live in `src/content/facts.ts` only, because the system is being renamed (Q31).
+- **WhatsApp confirmed** by TDL on the main number (Q20); the TODO is closed.
+- **Close and contact copy now describe what the button does.** "Message us on WhatsApp: tell us which services
+  you need and roughly how many people are involved." followed by TDL's own 24-hour line, word for word. The form
+  stays as "Prefer a form?".
+- **Service names keep their capitals mid-sentence.** "Read about hr outsourcing" came from `.toLowerCase()`; the
+  same call was in the form's summary, two service-page lines and the prefilled WhatsApp message. `inSentence()`
+  (`src/lib/text.ts`) lowers only the first letter, and only when the first word is not an acronym.
+- **TDL's logo PDF is not used** (Q16). It is a 25 KB JPEG inside a PDF, on white with a white sticker outline;
+  the transparent PNG is better. Kept at `docs/brand/tdl-logo-as-supplied.pdf` as the record, out of `public/`
+  where it would have been served.

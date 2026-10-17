@@ -13,7 +13,6 @@ import { placeholdersEnabled } from "@/content/placeholders";
  *
  * What a demo build changes, and nothing else:
  *  - placeholder photographs fill the home slider (src/content/placeholders.ts)
- *  - the staff-portal link shows, pointing at a holding page, before TDL has sent its URL
  *  - the brochure QR on /contact-us encodes the demo deployment's own address, so it can be scanned in the room
  */
 export const isDemoBuild = placeholdersEnabled;

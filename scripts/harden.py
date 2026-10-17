@@ -8,7 +8,7 @@ Checks, each printed as ok/FAIL with the evidence:
   5. Keyboard: services rows, testimonial cards and the three-step form are operable by keyboard with a visible
      focus ring on every stop.
   6. Reduced motion: final values in the proof bar at t=0, the headline fully visible, no running animations,
-     no Lenis; the Roster status line still tracks the section after a scroll.
+     no Lenis; the Roster's state still tracks the section after a scroll, and every state is captioned in text.
 Exit code 1 on any FAIL."""
 import json, re, sys, urllib.request, xml.etree.ElementTree as ET
 from pathlib import Path
@@ -172,7 +172,6 @@ with sync_playwright() as p:
     check(f["ring"] and f["matches"], "services row button shows :focus-visible ring", json.dumps(f))
     pg.keyboard.press("Enter"); pg.wait_for_timeout(300)
     check(first.get_attribute("aria-expanded") == "true", "Enter opens the service row", "")
-    status_open = pg.locator("header").inner_text()
     pg.keyboard.press("ArrowDown"); pg.wait_for_timeout(100)
     f = focus_ring()
     check(f["text"] != "" and pg.evaluate("() => document.activeElement.getAttribute('aria-expanded') !== null") and f["ring"], "ArrowDown moves to the next service row", json.dumps(f))
@@ -249,11 +248,16 @@ with sync_playwright() as p:
         const hidden = [...h.querySelectorAll('*')].filter(e => { const c = getComputedStyle(e); return c.opacity === '0' || c.visibility === 'hidden'; }).length;
         return {opacity: cs.opacity, visibility: cs.visibility, hiddenChildren: hidden, color: cs.color}; }""")
     check(h1["opacity"] == "1" and h1["visibility"] == "visible" and h1["hiddenChildren"] == 0, "headline fully visible, nothing split-hidden", json.dumps(h1))
-    status_hero = pg.locator("header").inner_text()
+    # The header status line was removed 2026-10-17; the canvas's data-state is the hook, and the section
+    # captions are the text twin — all six must be visible on the page at this (desktop) width.
+    state_hero = pg.evaluate("() => document.querySelector('canvas')?.dataset.state ?? null")
     pg.evaluate("() => document.querySelector('#services').scrollIntoView()")
     pg.wait_for_timeout(600)
-    status_services = pg.locator("header").inner_text()
-    check(status_hero != status_services, "status line changes state after a scroll under reduced motion", f"{status_hero.splitlines()[-1][:60]!r} → {status_services.splitlines()[-1][:60]!r}")
+    state_services = pg.evaluate("() => document.querySelector('canvas')?.dataset.state ?? null")
+    check(state_hero == "drift" and state_services == "columns", "Roster state follows a scroll under reduced motion", f"{state_hero!r} → {state_services!r}")
+    captions = pg.evaluate("""() => ['unassigned','counted','by location','by service line','through one employment lifecycle','as one firm']
+        .filter(t => ![...document.querySelectorAll('main p, main span')].some(e => e.offsetParent !== null && e.textContent.includes('Showing 5,000 people, ' + t)))""")
+    check(not captions, "every Roster state is captioned in visible text", f"missing: {captions}")
     canvas = pg.evaluate("() => { const c = document.querySelector('canvas'); return c ? {hidden: c.getAttribute('aria-hidden'), w: c.width, h: c.height} : null; }")
     check(canvas is not None and canvas["hidden"] == "true", "canvas present and aria-hidden under reduced motion (static branch)", json.dumps(canvas))
     if OUT:

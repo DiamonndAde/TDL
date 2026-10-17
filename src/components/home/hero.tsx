@@ -42,7 +42,7 @@ export function Hero() {
       </Container>
       <Container className="pb-8">
         <p className="data max-w-[60ch] text-ink-light">
-          <span className="lg:hidden">{rosterStatusText.drift}. </span>
+          <span>{rosterStatusText.drift}. </span>
           Each mark is one managed employee.
         </p>
       </Container>

@@ -219,7 +219,9 @@ export function Roster() {
       const la = getLayout(a), lb = getLayout(b);
       const toneA = TONE_ALPHA[slots[a].tone], toneB = TONE_ALPHA[slots[b].tone];
       const stateNow = p < 0.5 ? slots[a].state : slots[b].state;
-      if (stateNow !== lastState) { lastState = stateNow; setState(stateNow); }
+      // data-state is the test hook for the state the canvas is in (scripts/harden.py), since the header status
+      // line that used to show it was removed (2026-10-17).
+      if (stateNow !== lastState) { lastState = stateNow; canvasRef.current?.setAttribute("data-state", stateNow); setState(stateNow); }
 
       // drift (hero only) and stream (lifecycle only) are the two time-based terms, both off under reduced motion
       const driftAmt = continuous && slots[a].state === "drift" ? 1 - p : 0;

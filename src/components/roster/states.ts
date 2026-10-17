@@ -1,6 +1,6 @@
 /**
  * The six Roster states, in scroll order, and the text twin of each (AGENTS.md: every state the canvas depicts
- * is also stated in text — the header status line and the section captions read from here).
+ * is also stated in text — the section captions read from here; the header status line was removed 2026-10-17).
  */
 export const rosterStates = ["drift", "grid", "map", "columns", "path", "mark"] as const;
 export type RosterState = (typeof rosterStates)[number];

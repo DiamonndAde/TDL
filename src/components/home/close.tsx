@@ -19,7 +19,8 @@ export function Close() {
             Hand us the operation.
           </h2>
           <p className="mt-6 max-w-[34em] text-[1.0625rem] md:text-[1.125rem]">
-            Tell us which services you need and how many people are involved. {process.responsePromise}
+            Message us on WhatsApp: tell us which services you need and roughly how many people are involved.{" "}
+            {process.responsePromise}
           </p>
           <PartnerCta location="close" className="mt-9" />
           <p className="data mt-8 flex flex-wrap gap-x-6 gap-y-2 text-ink-light">
@@ -33,7 +34,7 @@ export function Close() {
         </div>
         <div>
           <RosterSlot state="mark" tone="ink" className="h-[260px] lg:h-[360px]" />
-          <p className="data mt-3 text-ink-light lg:hidden">{rosterStatusText.mark}</p>
+          <p className="data mt-3 text-ink-light">{rosterStatusText.mark}</p>
         </div>
       </Container>
     </section>

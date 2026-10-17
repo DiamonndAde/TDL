@@ -2,7 +2,6 @@ import Link from "next/link";
 import { company } from "@/content/facts";
 import { services } from "@/content/services";
 import { Container } from "./container";
-import { staffPortalLink } from "@/lib/staff-portal";
 import { ConsentReopen } from "./consent-reopen";
 import { Logo } from "./logo";
 
@@ -12,13 +11,12 @@ import { Logo } from "./logo";
  */
 export function Footer() {
   const year = new Date().getFullYear();
-  const portal = staffPortalLink();
   return (
     <footer className="on-ink bg-ink text-paper">
       <Container className="grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
-          {/* The footer stays navy, where the full lockup's olive wordmark would not read: the mark and the name. */}
-          <Logo variant="mark" />
+          {/* The full lockup, as in the header, on its own paper panel: the olive wordmark would not read on navy. */}
+          <Logo variant="panel" />
           <address className="mt-6 text-[15px] not-italic leading-relaxed text-ink-light">
             {company.address.street}, {company.address.locality}, {company.address.region}
             <br />
@@ -49,7 +47,7 @@ export function Footer() {
             { href: "/careers", label: "Careers" },
             { href: "/certifications", label: "Certifications" },
             { href: "/contact-us", label: "Contact" },
-            ...(portal ? [{ href: portal.href, label: portal.label, external: true }] : []),
+            { href: company.staffPortal.url, label: company.staffPortal.footerLabel, external: true },
           ]}
         />
         <FooterList

@@ -68,7 +68,8 @@ export default function ContactPage() {
 
       <Register id="become" title="New client?" note="WhatsApp, or a three-step form">
         <p className="max-w-[36em] text-[1.0625rem]">
-          Tell us which services you need and how many people are involved. {process.responsePromise}
+          Message us on WhatsApp: tell us which services you need and roughly how many people are involved.{" "}
+          {process.responsePromise}
         </p>
         <PartnerCta location="contact" className="mt-6" />
       </Register>

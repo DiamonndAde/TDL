@@ -76,7 +76,7 @@ export function Proof() {
         </dl>
         <div>
           <RosterSlot state="grid" tone="ink" className="h-[120px] lg:h-full lg:min-h-[150px]" />
-          <p className="data mt-3 text-ink-light lg:hidden">{rosterStatusText.grid}</p>
+          <p className="data mt-3 text-ink-light">{rosterStatusText.grid}</p>
         </div>
       </Container>
     </section>

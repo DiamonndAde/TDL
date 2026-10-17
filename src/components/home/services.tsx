@@ -7,6 +7,7 @@ import { useRoster } from "@/components/roster/roster-context";
 import { RosterSlot } from "@/components/roster/slot";
 import { rosterStatusText } from "@/components/roster/states";
 import { services } from "@/content/services";
+import { inSentence } from "@/lib/text";
 
 /**
  * Services as seven rows, reframed around what each removes from the buyer's plate. Hover, focus or open a row
@@ -100,7 +101,7 @@ export function Services() {
                       className="mb-5 inline-block text-[15px] text-signal-deep underline underline-offset-4"
                       tabIndex={isOpen ? 0 : -1}
                     >
-                      Read about {s.name.toLowerCase()}
+                      Read about {inSentence(s.name)}
                     </Link>
                   </div>
                 </div>

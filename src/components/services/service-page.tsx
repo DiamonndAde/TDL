@@ -8,6 +8,7 @@ import { RosterSlot } from "@/components/roster/slot";
 import { rosterStatusText } from "@/components/roster/states";
 import { company, process } from "@/content/facts";
 import { services, serviceIndex, type Service } from "@/content/services";
+import { inSentence } from "@/lib/text";
 
 /**
  * One template for the seven service pages. The headline is what the service removes from the buyer's plate;
@@ -38,7 +39,7 @@ export function ServicePage({ service }: { service: Service }) {
               <div className="mt-9">
                 <PartnerCta location="service_hero" service={{ slug: service.slug, name: service.name }} />
                 <p className="data mt-3 text-olive">
-                  Opens WhatsApp with a message about {service.name.toLowerCase()}. The form arrives with it already ticked.
+                  Opens WhatsApp with a message about {inSentence(service.name)}. The form arrives with it already ticked.
                 </p>
               </div>
             </div>
@@ -71,7 +72,7 @@ export function ServicePage({ service }: { service: Service }) {
           <div className="hidden lg:block" />
           <div>
             <h2 id="service-close" className="display max-w-[16ch] text-[1.75rem] md:text-[2.25rem]">
-              Hand us {service.name.toLowerCase()}.
+              Hand us {inSentence(service.name)}.
             </h2>
             <p className="mt-5 max-w-[34em] text-[1.0625rem]">
               Tell us how many people are involved. {process.responsePromise}

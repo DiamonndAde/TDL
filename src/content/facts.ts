@@ -1,3 +1,5 @@
+import { inSentence } from "@/lib/text";
+
 /**
  * Every number and claim on the site lives here, once.
  * Anything not in CLIENT-QUESTIONS.md §A (confirmed) carries a TODO(client) pointing at its row.
@@ -22,8 +24,7 @@ export const company = {
   email: "Info@totaldatalimited.com",
   phone: "+234 818 546 1010",
   phoneHref: "tel:+2348185461010",
-  // TODO(client): Q20 — confirm this number takes WhatsApp. Since 2026-10-16 it is the main call to action,
-  // "Partner with us", so this confirmation is now blocking for launch.
+  // WhatsApp on this number confirmed by TDL, 2026-10-17 (Q20). It is the main call to action, "Partner with us".
   whatsappHref: "https://wa.me/2348185461010",
   /**
    * The prefilled first message for "Partner with us". Generic everywhere except a service page, which names its
@@ -32,7 +33,7 @@ export const company = {
    */
   whatsappMessage: {
     general: "Hello Total Data Limited, I would like to talk about partnering with you.",
-    service: (serviceName: string) => `Hello Total Data Limited, I would like to talk about ${serviceName.toLowerCase()}.`,
+    service: (serviceName: string) => `Hello Total Data Limited, I would like to talk about ${inSentence(serviceName)}.`,
   },
   iso: "ISO 9001:2015",
   ndpr: "Nigeria Data Protection Regulations 2019",
@@ -45,11 +46,15 @@ export const company = {
   },
   siteUrl: "https://totaldatalimited.com",
   /**
-   * The HRIS login for TDL's managed staff. Shown in the header and footer as a secondary link, opening in a new
-   * tab. TODO(client): Q31 — the URL and the label TDL uses for it. Until the URL is set, the link is hidden on
-   * the live site and points at a holding page in demo builds (src/lib/staff-portal.ts).
+   * The HRIS login for TDL's managed staff (Paytrail), given by TDL 2026-10-17 (Q31). Shown in the header and the
+   * footer as a secondary link, opening in a new tab. The system is being renamed: change the labels here and
+   * nowhere else. TODO(client): Q31 — the new name, when it is settled.
    */
-  staffPortal: { label: "Staff portal", url: "" },
+  staffPortal: {
+    url: "https://paytrail-tdl.com/login",
+    headerLabel: "Paytrail staff login",
+    footerLabel: "Paytrail staff login portal",
+  },
 } as const;
 
 export const figures = {

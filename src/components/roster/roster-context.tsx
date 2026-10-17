@@ -4,7 +4,7 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 import type { RosterState } from "./states";
 
 interface RosterContextValue {
-  /** True while a Roster canvas is mounted on the page; the header only shows the status line then. */
+  /** True while a Roster canvas is mounted on the page. */
   active: boolean;
   setActive: (a: boolean) => void;
   state: RosterState;

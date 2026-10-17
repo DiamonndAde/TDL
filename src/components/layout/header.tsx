@@ -4,9 +4,6 @@ import Link from "next/link";
 import { useId, useState } from "react";
 import { PartnerCta } from "@/components/ui/partner-cta";
 import { company } from "@/content/facts";
-import { useRosterOptional } from "@/components/roster/roster-context";
-import { rosterStatusText } from "@/components/roster/states";
-import type { StaffPortalLink } from "@/lib/staff-portal";
 import { Container } from "./container";
 import { Logo } from "./logo";
 
@@ -19,25 +16,23 @@ const nav = [
 ];
 
 /**
- * The instrument strip. Sticky on every route. Carries TDL's full logo, the status line — the text twin of the
- * Roster's current state — and the one primary action. On phones the status line moves to each section's caption.
+ * The instrument strip. Sticky on every route. Carries TDL's full logo, the navigation, the staff login and the
+ * one primary action.
+ *
+ * No status line since 2026-10-17 (TDL review): its length changed with every Roster state, so the nav shifted
+ * sideways and wrapped. Each section's caption already states what the Roster shows, in the same words.
  *
  * Light, since 2026-10-16: TDL asked for their full logo in colour, unaltered, and its olive wordmark fails on
  * navy (2.5:1). This reverses "header always navy" (DESIGN-DECISIONS.md, 2026-09-18) at the client's request.
- * On paper the status line is olive (6.2:1) rather than ink-light, and the primary button inverts to its
- * ink-filled form automatically, because the header no longer carries `.on-ink`.
- *
- * `portal` is computed on the server (src/lib/staff-portal.ts) — this component cannot read the demo-build flag.
+ * The primary button inverts to its ink-filled form automatically, because the header does not carry `.on-ink`.
  */
-export function Header({ portal }: { portal: StaffPortalLink | null }) {
-  const roster = useRosterOptional();
+export function Header() {
   const [open, setOpen] = useState(false);
   const panelId = useId();
-  const status = roster?.active ? rosterStatusText[roster.state] : null;
 
   return (
     <header className="sticky top-0 z-40 border-b border-olive/25 bg-paper text-ink">
-      <Container className="flex h-16 items-center justify-between gap-6 md:h-18">
+      <Container className="flex h-[4.5rem] items-center justify-between gap-6 md:h-[5.25rem]">
         <Logo />
 
         <nav aria-label="Primary" className="hidden items-center gap-6 text-[15px] lg:flex">
@@ -49,13 +44,7 @@ export function Header({ portal }: { portal: StaffPortalLink | null }) {
         </nav>
 
         <div className="hidden items-center gap-5 lg:flex">
-          {/* The status line needs room; below xl the nav and actions take the width. */}
-          {status ? (
-            <p className="data hidden max-w-56 text-olive xl:block" aria-live="polite">
-              {status}
-            </p>
-          ) : null}
-          {portal ? <PortalLink portal={portal} className="text-[15px]" /> : null}
+          <PortalLink className="text-[15px]" />
           {/* No "Prefer a form?" here: the strip has no room, and every page body offers it beside its own button. */}
           <PartnerCta location="header" showFormLink={false} />
         </div>
@@ -72,7 +61,7 @@ export function Header({ portal }: { portal: StaffPortalLink | null }) {
       </Container>
 
       {/* Capped to the screen and scrollable, so on a short phone the last item is never out of reach. */}
-      <div id={panelId} hidden={!open} className="max-h-[calc(100dvh-4.5rem)] overflow-y-auto border-t border-olive/25 lg:hidden">
+      <div id={panelId} hidden={!open} className="max-h-[calc(100dvh-5rem)] overflow-y-auto border-t border-olive/25 lg:hidden">
         <Container className="flex flex-col gap-1 py-4">
           {nav.map((n) => (
             <Link key={n.href} href={n.href} className="py-2.5 text-[17px]" onClick={() => setOpen(false)}>
@@ -81,7 +70,7 @@ export function Header({ portal }: { portal: StaffPortalLink | null }) {
           ))}
           <div className="mt-3 flex flex-col gap-3">
             <PartnerCta location="menu" fullWidth />
-            {portal ? <PortalLink portal={portal} className="py-1 text-[15px]" /> : null}
+            <PortalLink className="py-1 text-[15px]" />
             <a href={company.phoneHref} className="data text-olive">
               Call {company.phone}
             </a>
@@ -93,15 +82,15 @@ export function Header({ portal }: { portal: StaffPortalLink | null }) {
 }
 
 /** Secondary to the main action: a plain underlined link, never a button. Opens in a new tab. */
-function PortalLink({ portal, className = "" }: { portal: StaffPortalLink; className?: string }) {
+function PortalLink({ className = "" }: { className?: string }) {
   return (
     <a
-      href={portal.href}
+      href={company.staffPortal.url}
       target="_blank"
-      rel={portal.external ? "noopener noreferrer" : "noopener"}
+      rel="noopener noreferrer"
       className={`underline underline-offset-4 decoration-olive/60 hover:decoration-ink ${className}`}
     >
-      {portal.label}
+      {company.staffPortal.headerLabel}
       <span className="sr-only"> (opens in a new tab)</span>
     </a>
   );
