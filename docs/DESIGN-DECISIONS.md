@@ -815,3 +815,14 @@ decision, the earlier reasoning is noted so it is not re-argued.
   stock caption's "photographs" would be false; recorded in PLACEHOLDERS.md with model, prompt and approval. Rules 2
   and 3 do not move: no generated face where a person is named, nothing generated that claims to be TDL's staff or
   premises.
+
+### Open: throttled-mobile LCP on `/` has drifted above its September baseline (2026-10-18)
+
+The applied-throttling probe (4× CPU, 150 ms RTT / 1.6 Mbps) measured `/` at **1.62, 1.80, 1.88, 2.01 and 2.97 s**
+LCP over five runs of this round's build — under 2.5 s in four — against 1.40–1.60 s recorded on 2026-09-19. LCP
+is still FCP (one paint, the headline), so the reveal is not the cause; main-thread blocking before first paint is
+1.6–2.2 s over 8–12 long tasks. **It is not this round's doing:** the previous round's source (`ccab8f4`), built
+against the same Next 16.3.8 on the same machine an hour later, measured 1.95, 2.59, 3.19 and 6.22 s. The 6.2 s run
+says the machine itself was noisy that evening. Next step, on a quiet machine: bisect `ccab8f4` back to the
+September milestone with the probe, and compare Next 16.3.5 against 16.3.8 on the same source. Until then the
+working number is "≤ 2.0 s median, one run in five over 2.5 s", and the brief's < 2.5 s is not reliably met on `/`.
