@@ -731,3 +731,46 @@ decision, the earlier reasoning is noted so it is not re-argued.
 - **TDL's logo PDF is not used** (Q16). It is a 25 KB JPEG inside a PDF, on white with a white sticker outline;
   the transparent PNG is better. Kept at `docs/brand/tdl-logo-as-supplied.pdf` as the record, out of `public/`
   where it would have been served.
+
+## 2026-10-17 — TDL review round 2, part 2: the slider after the proof bar, marks that settle, marks that keep off text
+
+- **The slider moved to directly after the proof bar** — the figures say how many people; the next thing seen is
+  who they are. Left label "At work", caption "The people behind the marks".
+- **A wide, short band that crossfades**: 21:9 from `sm`, 4:3 on phones, 0.9 s opacity crossfade instead of a
+  horizontal slide. All images stack in one reserved frame, so nothing shifts on hydration. They load one ahead of
+  being shown, not all at once — the first two on arrival, then each next one as the previous shows.
+- **Controls, smaller and over the image.** Progress bars under the image, each a button ("Show photograph 3 of
+  4"); the active one fills over 6 s in ink, not cyan (cyan is people and live numbers). The fill *is* the timer:
+  the slide advances on `animationend`, and pausing sets `animation-play-state: paused`, so a pause resumes where it
+  stopped. A 40 px pause/play icon at the image's bottom right. Previous/next arrows appear on hover and on keyboard
+  focus from `sm`; phones swipe (pointer events, `touch-action: pan-y` so vertical scrolling is untouched). Arrow
+  keys work anywhere inside. Reduced motion: no timer, no pause control, and the global reduced-motion CSS makes the
+  crossfade instant.
+- **No per-image badge or credit.** One caption line under the slider: "Stand-in photographs. TDL's own to come."
+  Credits stay in PLACEHOLDERS.md. AGENTS.md's placeholder labelling rule now names this as the slider's exception.
+- **`desk-work` left the slider.** It is a portrait photograph; a 21:9 band of it shows only the back of her head.
+  Four stand-ins until Part B replaces them.
+- **Sharpness on 2× screens**, measured at 1440 px: the band is 960 CSS px wide, so it wants 1,920 device px; the
+  stand-ins are 1,600 px. Slightly soft at 1:1, accepted for the demo (`docs/screenshots/m11-slider-1440@2x.png`).
+  Q27 now asks for TDL's photographs at ≥ 2,400 px wide and says why. 21:9 vs 16:7 makes no difference — they are
+  the same shape to within 2%; width is what decides it.
+- **Marks settle within a second of the wheel stopping** (item 5). The cause: positions are a function of scroll,
+  and a handoff between two sections spans 35% of a viewport of scrolling, so stopping inside that band left the
+  marks half-moved for as long as you looked. Now, once Lenis's *target* scroll has been still for 120 ms, progress
+  eases over 450 ms to whichever end the section caption names (p < 0.5 back, else on); when scrolling resumes it
+  rejoins the scroll at no more than 2.2 progress/s, so nothing jumps. Measured at 1280×900, wheel stopped mid-way
+  from the map to the service columns: before, 1 s after the wheel stopped the marks were still half-way between
+  the two layouts and stayed there; after, they were fully on the map (p ≈ 0.37) or fully in the seven columns
+  (p ≈ 0.71) about 0.2 s after the page itself stopped moving (screenshots in the commit's report). Reduced motion
+  is unchanged (already quantised to 0/1).
+- **Keep-out zones** (item 4). The canvas is a fixed layer *above* the content, so marks crossed text mid-
+  transition. Anything marked `data-roster-avoid` (the slider frame) and, below 640 px, every heading, paragraph,
+  list item, caption and button in `<main>` outside a slot, becomes a zone where mark opacity drops to 6%. At rest
+  the marks sit in their slots, which hold no text, so this only bites in transit. Rects are measured with the slot
+  rects (on resize and layout change), and only zones on screen are tested each frame. Screenshots at 390 px stopped
+  mid-way through three handoffs: no mark over a heading, caption or service row.
+- **Tests.** `scripts/slider-proof.py` rewritten for the new controls (position, 21:9 / 4:3, crossfade, caption,
+  hover/focus/pause holding the bar where it is, swipe, indicators, arrows only from `sm`, keep-out marker). Seen to
+  fail with the reduced-motion bound removed — and that exposed a weak check: "no auto-advance" passed because the
+  instant reduced-motion animation cycled the slider 150 times in 7.5 s and happened to land back on image 1. It now
+  counts every change. The keep-out zones and the settle are covered by screenshots, not an automated test.

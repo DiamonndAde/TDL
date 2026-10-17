@@ -101,3 +101,15 @@
   from { opacity: 0; transform: translateX(calc(var(--step-dir, 1) * 12px)); }
   to { opacity: 1; transform: none; }
 }
+
+/* The home slider's active indicator. Its fill IS the slider's timer: the slide advances on animationend, and
+   pausing sets animation-play-state, so a pause resumes where it stopped (photo-slider.tsx). */
+@keyframes slider-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.slider-fill {
+  animation-name: slider-fill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}

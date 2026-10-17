@@ -20,7 +20,7 @@ Five photographs. Pexels and Unsplash licences (free to use; attribution given a
 
 | Key | Frames | Scene | Photographer | Source |
 |---|---|---|---|---|
-| `desk-work` | Home slider; `/about-us` → "At work" beside the empty Coker Road frame (3:2); `/careers` → header, no caption (3:2) | A woman standing at a desk reviewing charts on a laptop, Abuja office, natural light, back to camera, no visible branding | [Taiye Salawu](https://www.pexels.com/@taiyesalawu/) | [pexels.com/photo/36482981](https://www.pexels.com/photo/professional-woman-analyzing-data-on-laptop-36482981/) |
+| `desk-work` | `/about-us` → "At work" beside the empty Coker Road frame (3:2); `/careers` → header, no caption (3:2) | A woman standing at a desk reviewing charts on a laptop, Abuja office, natural light, back to camera, no visible branding | [Taiye Salawu](https://www.pexels.com/@taiyesalawu/) | [pexels.com/photo/36482981](https://www.pexels.com/photo/professional-woman-analyzing-data-on-laptop-36482981/) |
 | `interview` | Home slider | Two people in conversation across a desk, Lagos office | [Ninthgrid](https://www.pexels.com/@ninthgrid-2149521550/) | [pexels.com/photo/30688591](https://www.pexels.com/photo/professional-interview-in-modern-lagos-office-30688591/) |
 | `files-desk` | Home slider | A man working through files at a desk lined with folders, Osun State. **Cropped** to the left 83% (a monitor's maker's logo) | [Oluwapamilerinayo Ajala](https://www.pexels.com/@oluwapamilerinayo-ajala-1663970972/) | [pexels.com/photo/30970394](https://www.pexels.com/photo/professional-in-busy-office-environment-30970394/) |
 | `laptop-pair` | Home slider | A woman and a man working through a problem at a laptop, open-plan workspace, Lagos (NESA by Makers) | [@disruptxn](https://unsplash.com/@disruptxn) (the profile's display name is "X") | [unsplash.com/photos/kwzWjTnDPLk](https://unsplash.com/photos/man-using-black-laptop-computer-kwzWjTnDPLk) |
@@ -32,7 +32,7 @@ Faces are fine in the slider: it names no one and claims no premises, and its ca
 
 | Route | Fills | Stays empty |
 |---|---|---|
-| `/` | The slider near the close (all five, captioned "People at work in Nigerian offices. Not TDL's staff or premises"); three testimonial portraits → monograms CO, MK, DA | — (the slider replaced the Coker Road frame; flag off, it is a "Photographs to come" note naming the address) |
+| `/` | The slider after the proof bar (four images — `desk-work` is portrait and dropped out at 21:9 — one caption line: "Stand-in photographs. TDL's own to come." — no per-image badge or credit since 2026-10-17; credits are here); three testimonial portraits → monograms CO, MK, DA | — (flag off, the slider is a "Photographs to come" note naming the address) |
 | `/about-us` | "At work" frame (`desk-work`); two leadership and three board portraits → monograms | "The office" frame captioned 69 Coker Road |
 | `/careers` | Header frame (`desk-work`), no caption | — |
 | `/contact-us` | — (the brochure QR code is marked "Demo build … Do not print it") | — |

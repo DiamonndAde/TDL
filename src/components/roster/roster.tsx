@@ -20,6 +20,16 @@ import { attachViewport } from "./viewport";
  * threshold reads Lenis's *target* scroll instead of the animated one, so the marks head straight for the
  * destination state while the page catches up (AGENTS.md, scroll-fling).
  *
+ * Settling (2026-10-17): because progress is a function of scroll, stopping mid-transition used to leave the
+ * marks half-moved indefinitely. Once Lenis's target scroll has been still for SETTLE_IDLE_MS, progress eases to
+ * whichever end the section caption names (p < 0.5 → the state being left, else the one being approached) over
+ * SETTLE_MS; when scrolling resumes it is released back to the scroll at no more than RELEASE_PER_S, so nothing
+ * jumps. Settled within ~0.75 s of the wheel stopping, measured in DESIGN-DECISIONS.md.
+ *
+ * Keep-out zones: marks fade almost to nothing over any element marked `data-roster-avoid` (the photograph
+ * slider), and below 640 px over every block of text in <main>, so on phones they never cross a heading or a
+ * service row. At rest they sit in their slots, which hold no text; this only bites mid-transition.
+ *
  * Reduced motion: progress is quantised to 0/1, follow is instant, there is no drift and no loop —
  * the canvas redraws only on scroll and resize. Save-Data: this component is never loaded at all.
  */
@@ -27,6 +37,14 @@ import { attachViewport } from "./viewport";
 const STAGGER = 0.45; // fraction of the transition over which marks start moving
 const FOLLOW = 0.32; // per-frame follow toward the target position
 const FLING_VH_PER_S = 2.5; // above this scroll speed (viewport heights / s) snap to the destination state
+const SETTLE_IDLE_MS = 120; // target scroll still for this long → settle
+const SETTLE_MS = 450; // ease to the nearer end over this
+const RELEASE_PER_S = 2.2; // once scrolling resumes, follow the scroll again at most this fast (progress / s)
+const AVOID_ALPHA = 0.06; // mark opacity multiplier inside a keep-out zone
+const AVOID_PAD = 6; // px around each keep-out rect
+const PHONE = 640;
+// Text blocks the marks keep out of on phones. Anything inside a slot is the Roster's own (labels on the path).
+const PHONE_TEXT = "main :is(h1, h2, h3, h4, p, li, dt, dd, blockquote, figcaption, label, button, a.inline-flex)";
 const FRAME_BUDGET_MS = 12;
 const BUDGET_STRIKES = 30;
 const FLOOR = 800;
@@ -104,6 +122,8 @@ export function Roster() {
     // filled in during idle time so hydration-adjacent main-thread work stays short (this was measurable in
     // Lighthouse as LCP render delay on simulated 4G).
     let layouts: (Layout | null)[] = slots.map(() => null);
+    // Keep-out rects in document coordinates, refreshed with the slot rects.
+    let avoid: Rect[] = [];
     let cur = new Float32Array(n * 2);
     let stagger = new Float32Array(n);
     let initialised = false;
@@ -136,6 +156,18 @@ export function Roster() {
         s.rect = { x: r.left, y: r.top + sy, w: r.width, h: r.height };
       }
       layouts = slots.map(() => null);
+      const zones = Array.from(document.querySelectorAll<HTMLElement>("[data-roster-avoid]"));
+      if (vp.width < PHONE) {
+        for (const el of document.querySelectorAll<HTMLElement>(PHONE_TEXT)) {
+          if (!el.closest("[data-roster-slot]")) zones.push(el);
+        }
+      }
+      avoid = [];
+      for (const el of zones) {
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) continue;
+        avoid.push({ x: r.left - AVOID_PAD, y: r.top + sy - AVOID_PAD, w: r.width + AVOID_PAD * 2, h: r.height + AVOID_PAD * 2 });
+      }
       if (idleHandle) cancelIdle(idleHandle);
       if (!initialised) {
         cur = new Float32Array(getLayout(0).pos);
@@ -187,6 +219,13 @@ export function Roster() {
     let intro = 0;
     let introStart: number | null = null;
     const INTRO_MS = 1400;
+    // Settle state: `held` is the progress actually drawn while it differs from the scroll's own.
+    let lastTarget = Number.NaN;
+    let targetStillSince = performance.now();
+    let held: number | null = null;
+    let settleFrom = 0, settleTo = 0, settleStart = 0;
+    let settleKey = "";
+    const visible: Rect[] = [];
 
     function frame(now: number) {
       raf = 0;
@@ -215,7 +254,35 @@ export function Roster() {
           if (intro > rawP) { rawP = smooth(intro); b = 1; }
         }
       }
-      const p = reduced ? (rawP < 0.5 ? 0 : 1) : rawP;
+      // --- settle: ease to the nearer end once the target scroll is still ----------------------------
+      const target = lenis ? lenis.targetScroll : scroll;
+      if (target !== lastTarget) { lastTarget = target; targetStillSince = now; }
+      const still = now - targetStillSince >= SETTLE_IDLE_MS;
+      const introRunning = introStart !== null && intro < 1;
+      let pDraw = rawP;
+      if (!reduced && !introRunning) {
+        const key = `${a}-${b}`;
+        if (key !== settleKey) { settleKey = key; held = null; }
+        if (still && rawP > 0 && rawP < 1) {
+          if (held === null || settleStart === 0) {
+            settleFrom = held ?? rawP;
+            settleTo = rawP < 0.5 ? 0 : 1;
+            settleStart = now;
+          }
+          const k = Math.min(1, (now - settleStart) / SETTLE_MS);
+          held = settleFrom + (settleTo - settleFrom) * smooth(k);
+          pDraw = held;
+        } else if (held !== null) {
+          settleStart = 0;
+          const max = (RELEASE_PER_S * dt) / 1000;
+          const d = rawP - held;
+          held = Math.abs(d) <= max ? null : held + Math.sign(d) * max;
+          pDraw = held ?? rawP;
+        } else {
+          settleStart = 0;
+        }
+      }
+      const p = reduced ? (rawP < 0.5 ? 0 : 1) : pDraw;
       const la = getLayout(a), lb = getLayout(b);
       const toneA = TONE_ALPHA[slots[a].tone], toneB = TONE_ALPHA[slots[b].tone];
       const stateNow = p < 0.5 ? slots[a].state : slots[b].state;
@@ -234,6 +301,8 @@ export function Roster() {
       const follow = reduced || (slots[a].state === "path" && p === 0) ? 1 : FOLLOW;
       const active = activeColumnRef.current;
       const inColumns = slots[a].state === "columns" && p === 0;
+      visible.length = 0;
+      for (const r of avoid) if (r.y - scroll < vh && r.y + r.h - scroll > 0) visible.push(r);
 
       ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
       for (const bkt of buckets) bkt.length = 0;
@@ -260,6 +329,13 @@ export function Roster() {
         if (inColumns && active !== null) {
           if (la.column[i] === active) { color = slots[a].tone === "paper" ? 2 : 0; alpha = 1; }
           else alpha *= 0.55;
+        }
+        if (visible.length) {
+          const x = cur[i * 2], yd = cur[i * 2 + 1];
+          for (let z = 0; z < visible.length; z++) {
+            const r = visible[z];
+            if (x >= r.x && x <= r.x + r.w && yd >= r.y && yd <= r.y + r.h) { alpha *= AVOID_ALPHA; break; }
+          }
         }
         const step = Math.min(ALPHA_STEPS - 1, Math.round(alpha * (ALPHA_STEPS - 1)));
         buckets[color * ALPHA_STEPS + step].push(i);
@@ -308,7 +384,8 @@ export function Roster() {
       }
 
       // keep looping while something is time-based or still settling
-      const settling = !reduced && ((p > 0 && p < 1) || (introStart !== null && intro < 1));
+      const settleDone = held !== null && still && settleStart !== 0 && now - settleStart >= SETTLE_MS;
+      const settling = !reduced && ((p > 0 && p < 1) || introRunning || (held !== null && !settleDone));
       if (running && (continuous || settling)) raf = requestAnimationFrame(frame);
     }
 
