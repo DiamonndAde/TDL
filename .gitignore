@@ -43,3 +43,7 @@ next-env.d.ts
 
 # The example is documentation, not configuration
 !.env.example
+
+# Generated slider candidates (scripts/generate-slider-images.mjs): never committed. Only the chosen images go in, as
+# optimised AVIF/WebP under public/placeholders/.
+photo-picks/

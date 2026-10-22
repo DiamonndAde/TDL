@@ -14,13 +14,14 @@ present, demo-marked, and /brochure is a 307 to the PDF when public/brochure.pdf
 Usage: python scripts/slider-proof.py [screenshot-dir]
 """
 import sys, urllib.request
+from urllib.parse import unquote
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else None
 CHROME = r"C:/Users/PC/AppData/Local/ms-playwright/chromium-1228/chrome-win64/chrome.exe"
 BASE = "http://localhost:3131"
-CAPTION = "Stand-in photographs. TDL\u2019s own to come."
+CAPTION = "Generated stand-in images, not TDL\u2019s staff. TDL\u2019s own photographs to come."
 fails = []
 def check(ok, msg):
     print(("ok    " if ok else "FAIL  ") + msg)
@@ -50,6 +51,8 @@ with sync_playwright() as p:
     check(region.count() == 1, "slider rendered in demo build")
     N = page.locator("#office [aria-roledescription=slide]").count()
     check(N >= 4, f"four or more images ({N})")
+    wide = page.evaluate("() => document.querySelectorAll('#office [aria-roledescription=slide]')[0].querySelector('img')?.currentSrc ?? ''")
+    check("generated/gen-" in unquote(wide), f"the slider shows the generated stand-ins ({unquote(wide)[-60:]})")
     frame = page.locator("#office [data-roster-avoid]")
     check(frame.count() == 1, "frame is a Roster keep-out zone")
     page.locator("#office").scroll_into_view_if_needed()
@@ -175,6 +178,11 @@ with sync_playwright() as p:
         const ev = (t, x) => f.dispatchEvent(new PointerEvent(t, {bubbles: true, pointerType: 'touch', clientX: x, clientY: y, pointerId: 7, isPrimary: true}));
         ev('pointerdown', r.right - 40); ev('pointerup', r.left + 60); }""")
     check(current(page) == before % N + 1, f"swipe left shows the next image ({before} -> {current(page)})")
+    # Art direction: a slide with its own phone source must load that source below `sm`, not the wide one.
+    page.locator('#office button[aria-label^="Show photograph 2 of"]').click()
+    page.wait_for_timeout(1500)
+    src = page.evaluate("() => document.querySelectorAll('#office [aria-roledescription=slide]')[1].querySelector('img')?.currentSrc ?? ''")
+    check("phone" in src, f"the phone gets the slide's own phone crop ({src[-70:]})")
     page.goto(BASE + "/contact-us", wait_until="networkidle")
     page.locator("[role=img][aria-label^='QR code for']").scroll_into_view_if_needed()
     OUT and page.screenshot(path=f"{OUT}/contact-390.png")

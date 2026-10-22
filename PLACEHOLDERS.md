@@ -16,15 +16,40 @@ The three testimonial portrait frames (Chidi Okonkwo, Mr. Michael Kehinde, Dorot
 
 ## Registry (`src/content/placeholders.ts`)
 
-Five photographs. Pexels and Unsplash licences (free to use; attribution given anyway, on the image and here). Files in `public/placeholders/`, 1,600 px wide. Three were cropped to remove a device maker's logo; nothing else was altered.
+### Stock photograph (`placeholders`)
+
+One photograph. Pexels licence (free to use; attribution given anyway, on the image and here). File in `public/placeholders/`, 1,600 px wide.
 
 | Key | Frames | Scene | Photographer | Source |
 |---|---|---|---|---|
 | `desk-work` | `/about-us` → "At work" beside the empty Coker Road frame (3:2); `/careers` → header, no caption (3:2) | A woman standing at a desk reviewing charts on a laptop, Abuja office, natural light, back to camera, no visible branding | [Taiye Salawu](https://www.pexels.com/@taiyesalawu/) | [pexels.com/photo/36482981](https://www.pexels.com/photo/professional-woman-analyzing-data-on-laptop-36482981/) |
-| `interview` | Home slider | Two people in conversation across a desk, Lagos office | [Ninthgrid](https://www.pexels.com/@ninthgrid-2149521550/) | [pexels.com/photo/30688591](https://www.pexels.com/photo/professional-interview-in-modern-lagos-office-30688591/) |
-| `files-desk` | Home slider | A man working through files at a desk lined with folders, Osun State. **Cropped** to the left 83% (a monitor's maker's logo) | [Oluwapamilerinayo Ajala](https://www.pexels.com/@oluwapamilerinayo-ajala-1663970972/) | [pexels.com/photo/30970394](https://www.pexels.com/photo/professional-in-busy-office-environment-30970394/) |
-| `laptop-pair` | Home slider | A woman and a man working through a problem at a laptop, open-plan workspace, Lagos (NESA by Makers) | [@disruptxn](https://unsplash.com/@disruptxn) (the profile's display name is "X") | [unsplash.com/photos/kwzWjTnDPLk](https://unsplash.com/photos/man-using-black-laptop-computer-kwzWjTnDPLk) |
-| `laptop-work` | Home slider | A man in a waistcoat working at a laptop, Lagos office. **Cropped** to 9–89% of the width (a monitor's and the laptop's makers' logos). Fluorescent light with a cool cast — the weakest of the five | [Oladipupo Ajisegiri](https://www.pexels.com/@ladiwayne/) | [pexels.com/photo/1405769](https://www.pexels.com/photo/man-sitting-on-chair-indoor-1405769/) |
+
+The four stock photographs the home slider used from 2026-10-17 (Ninthgrid 30688591, Oluwapamilerinayo Ajala 30970394, @disruptxn kwzWjTnDPLk, Oladipupo Ajisegiri 1405769) were retired on 2026-10-22 and their files removed; the sourcing record below is kept.
+
+### AI-generated stand-ins for the home slider (`sliderStandIns`)
+
+**AI-generated with OpenAI `gpt-image-2`** (Images API, 1536×1024, quality `medium`) by `scripts/generate-slider-images.mjs`. **Client-approved exception**: TDL asked on 2026-10-17 for generated images in the slider until their own photographs arrive (Q27); the owner approved the six below on 2026-10-22. They appear **only in presentation builds** (`PLACEHOLDER_IMAGES`, behind the build guard), **only in the home slider**, under the caption "Generated stand-in images, not TDL's staff. TDL's own photographs to come." They never sit in a frame that names a person or claims TDL's premises (AGENTS.md, Placeholders rules 1–3). Committed as WebP (quality 86); the PNG originals and the generation manifest stay in the gitignored `photo-picks/generated/`.
+
+**Base prompt**, word for word in every image:
+
+> Photorealistic candid photo of Nigerian professionals at work in a modern Lagos office, natural window light, warm tones, people engaged in real tasks, nobody looking at the camera, no visible logos, no readable text on screens or documents, landscape.
+
+followed by `Scene: <scene>` and a framing line — round 1: "Keep the people and the main action in the middle horizontal band of the frame, with plain space above and below, so a very wide crop still shows them." — re-run: "Wide landscape composition with the people in the middle third of the frame; a full-bleed photograph with no borders, bars or blank bands. No lettering, logos or brand marks on any equipment, including the backs of monitors and laptop lids."
+
+| Slide | File | Scene line | Framing | Processing |
+|---|---|---|---|---|
+| 1 | `generated/gen-meeting-standup.webp` 1536×1024 | Three colleagues standing by a window in a short working discussion, one holding a folder, another pointing at it. | round 1 | as generated |
+| 2 | `generated/gen-admin-open-plan.webp` 1536×1024, phone `gen-admin-open-plan-phone.webp` 1300×975 | An open-plan administration office: two people at adjacent desks working on computers, a third walking past carrying files, slightly out of focus. | round 1 | phone source is a crop from the left (x 0–1300, y 25–1000), so the walking figure is out of frame rather than halved |
+| 3 | `generated/gen-laptop-pair.webp` 1536×730 | Two colleagues side by side at one laptop, one explaining something on the screen to the other, screen angled away from the camera. | round 1 | painted letterbox bars trimmed (rows 147–876 kept) |
+| 4 | `generated/gen-documents-records.webp` 1536×790 | A man filing folders into a shelf of labelled box files in a records room, labels blank or out of focus. | round 1 | painted letterbox bars trimmed (rows 118–907 kept) |
+| 5 | `generated/gen-hr-interview.webp` 1536×1024 | An HR interview across a desk: the interviewer listening and taking notes, the candidate in profile mid-answer. | re-run | as generated |
+| 6 | `generated/gen-payroll-desk.webp` 1536×1024 | A payroll officer at an admin desk with a calculator and a monitor turned away from the camera, checking figures on a printed sheet seen edge-on. | re-run | as generated |
+
+**Checked at full size** before selection: hands, faces including background people, any text or logos, distortion. **Rejected**: round 1 `meeting-table`, `documents-review`, `hr-interview`, `laptop-pair`, `documents-records` came back with flat letterbox bars painted in (the round-1 framing line, taken literally; the last two were rescued by trimming), `documents-review` also had a logo-like mark on a background laptop lid, and `payroll-desk` had brand-like lettering on a monitor back — both re-run with the new framing and equipment lines and passed.
+
+**Sharpness**: the desktop band shows ~1,920 device px across on a 2× laptop against 1,536 source px — slightly soft, accepted for the demo. On phones (358 CSS px, 716 device px at 2×, 1,074 at 3×) every image has at least 1,074 px except `laptop-pair` (973) and `documents-records` (1,053), which are 9% and 2% short on 3× phones only. Nothing was upscaled.
+
+**Spend**: 10 images generated, **$0.4175** in total ($0.0417–$0.0418 each: 113 text-input tokens at $5/M and 1,372 image-output tokens at $30/M, from each response's own usage).
 
 Faces are fine in the slider: it names no one and claims no premises, and its caption says the people are not TDL's staff. The face rule is about frames carrying a named person; the premises rule is about frames captioned with TDL's address.
 
@@ -32,13 +57,13 @@ Faces are fine in the slider: it names no one and claims no premises, and its ca
 
 | Route | Fills | Stays empty |
 |---|---|---|
-| `/` | The slider after the proof bar (four images — `desk-work` is portrait and dropped out at 21:9 — one caption line: "Stand-in photographs. TDL's own to come." — no per-image badge or credit since 2026-10-17; credits are here); three testimonial portraits → monograms CO, MK, DA | — (flag off, the slider is a "Photographs to come" note naming the address) |
+| `/` | The slider after the proof bar (six generated stand-ins, one caption line: "Generated stand-in images, not TDL's staff. TDL's own photographs to come."; until 2026-10-22 four stock photographs — `desk-work` is portrait and dropped out at 21:9 — one caption line: "Stand-in photographs. TDL's own to come." — no per-image badge or credit since 2026-10-17; credits are here); three testimonial portraits → monograms CO, MK, DA | — (flag off, the slider is a "Photographs to come" note naming the address) |
 | `/about-us` | "At work" frame (`desk-work`); two leadership and three board portraits → monograms | "The office" frame captioned 69 Coker Road |
 | `/careers` | Header frame (`desk-work`), no caption | — |
 | `/contact-us` | — (the brochure QR code is marked "Demo build … Do not print it") | — |
 | `/work`, `/services/*`, `/certifications`, legal, `/insights` | nothing (no frames) | — |
 
-### Sourced and rejected (2026-10-17, for the home slider)
+### Sourced and rejected (2026-10-17, stock for the home slider — retired 2026-10-22)
 
 Criteria: Nigerian workplace with the location stated on the source page, real people mid-work, natural light where possible, no legible brand logo, no legible document, licensed for commercial use.
 
@@ -67,4 +92,4 @@ or, on Vercel: set `PLACEHOLDER_IMAGES=true` on the **Preview** environment (not
 
 ## Removing the mechanism for good
 
-Delete `src/content/placeholders.ts`, `src/components/ui/monogram.tsx`, the `monograms` prop on `Testimonials`, the guard block in `next.config.ts`, the placeholder branch in `src/components/home/office.tsx` and `homePlaceholderSlides` in `src/content/photographs.ts`, and this file. Nothing else references them.
+Delete `src/content/placeholders.ts`, `src/components/ui/monogram.tsx`, the `monograms` prop on `Testimonials`, the guard block in `next.config.ts`, the placeholder branch in `src/components/home/office.tsx`, `sliderStandIns` and `public/placeholders/generated/`, `scripts/generate-slider-images.mjs`, and this file. Nothing else references them.

@@ -1,5 +1,3 @@
-import type { PlaceholderKey } from "./placeholders";
-
 /**
  * TDL's own photographs for the home slider: their team at work, at 69 Coker Road. TODO(client): Q27 — four to
  * six shots, at least 2,400 px wide (the slider is cropped 21:9 and a 2x screen needs the width). Empty until they arrive; while it is empty the section shows the
@@ -19,14 +17,8 @@ export interface Photograph {
 
 export const homePhotographs: Photograph[] = [];
 
-/** The one caption line under stand-in images in presentation builds (TDL review, 2026-10-17). */
-export const standInCaption = "Stand-in photographs. TDL’s own to come.";
-
-/** Presentation builds only (PLACEHOLDER_IMAGES), in slide order. `desk-work` left out 2026-10-17: it is portrait, and a
- * 21:9 band of it shows only her back. */
-export const homePlaceholderSlides: { key: PlaceholderKey; position?: string }[] = [
-  { key: "interview", position: "50% 45%" },
-  { key: "files-desk", position: "50% 35%" },
-  { key: "laptop-pair", position: "50% 40%" },
-  { key: "laptop-work", position: "50% 20%" },
-];
+/**
+ * The one caption line under the stand-in images in presentation builds. They are generated, so the caption says
+ * so; "photographs" would be false (TDL review, 2026-10-22).
+ */
+export const standInCaption = "Generated stand-in images, not TDL’s staff. TDL’s own photographs to come.";

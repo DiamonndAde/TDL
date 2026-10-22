@@ -1,5 +1,6 @@
 /**
- * Licensed stock placeholders for client presentations ONLY. Rendered by <PhotoFrame> when PLACEHOLDER_IMAGES
+ * Licensed stock placeholders for client presentations ONLY (the home slider's stock was replaced by generated
+ * stand-ins on 2026-10-22 — `sliderStandIns` below). Rendered by <PhotoFrame> when PLACEHOLDER_IMAGES
  * is on (the build guard in next.config.ts governs where that is allowed). Every placeholder renders with a
  * visible "Placeholder — TDL photography required" label and a credit. Attribution: PLACEHOLDERS.md.
  *
@@ -31,54 +32,51 @@ export const placeholders = {
     sourceUrl: "https://www.pexels.com/photo/professional-woman-analyzing-data-on-laptop-36482981/",
     licence: "Pexels",
   },
-  // The home slider (TDL review, 2026-10-16, item 8). Chosen 2026-10-17; candidates and rejections in
-  // PLACEHOLDERS.md. Faces are fine here: the slider names no one and claims no premises.
-  interview: {
-    file: "/placeholders/pexels-30688591.jpg",
-    width: 1600,
-    height: 1067,
-    scene: "Two professionals in conversation across a desk, Lagos office, natural light",
-    photographer: "Ninthgrid",
-    photographerUrl: "https://www.pexels.com/@ninthgrid-2149521550/",
-    sourceUrl: "https://www.pexels.com/photo/professional-interview-in-modern-lagos-office-30688591/",
-    licence: "Pexels",
-  },
-  "files-desk": {
-    // Cropped to the left 83% of the original to take out a monitor's maker's logo.
-    file: "/placeholders/pexels-30970394.jpg",
-    width: 1600,
-    height: 1285,
-    scene: "A man working through files at a desk lined with folders, office in Osun State",
-    photographer: "Oluwapamilerinayo Ajala",
-    photographerUrl: "https://www.pexels.com/@oluwapamilerinayo-ajala-1663970972/",
-    sourceUrl: "https://www.pexels.com/photo/professional-in-busy-office-environment-30970394/",
-    licence: "Pexels",
-  },
-  "laptop-pair": {
-    file: "/placeholders/unsplash-kwzWjTnDPLk.jpg",
-    width: 1600,
-    height: 1067,
-    scene: "A woman and a man working through a problem at a laptop, open-plan Lagos workspace",
-    photographer: "@disruptxn", // the profile's display name is "X"; the handle is the unambiguous credit
-    photographerUrl: "https://unsplash.com/@disruptxn",
-    sourceUrl: "https://unsplash.com/photos/man-using-black-laptop-computer-kwzWjTnDPLk",
-    licence: "Unsplash",
-  },
-  "laptop-work": {
-    // Cropped to 9–89% of the original's width to take out a monitor's and the laptop's makers' logos. Indoor
-    // fluorescent light with a cool cast: the weakest of the five, kept for the scene (Lagos, at work, unposed).
-    file: "/placeholders/pexels-1405769.jpg",
-    width: 1600,
-    height: 1333,
-    scene: "A man in a waistcoat working at a laptop in a Lagos office",
-    photographer: "Oladipupo Ajisegiri",
-    photographerUrl: "https://www.pexels.com/@ladiwayne/",
-    sourceUrl: "https://www.pexels.com/photo/man-sitting-on-chair-indoor-1405769/",
-    licence: "Pexels",
-  },
 } satisfies Record<string, Placeholder>;
 
 export type PlaceholderKey = keyof typeof placeholders;
+
+/**
+ * AI-generated stand-ins for the home slider — the one client-approved exception to "never generated imagery"
+ * (TDL, 2026-10-17; AGENTS.md, Placeholders rule 1). Presentation builds only: rendered only when
+ * PLACEHOLDER_IMAGES is on, behind the same build guard as the stock above, under the caption in
+ * src/content/photographs.ts. Never in a frame that names a person or claims TDL's premises.
+ *
+ * Made with scripts/generate-slider-images.mjs (gpt-image-2, 1536x1024, quality medium); the exact prompt of each,
+ * the selection and the spend are in PLACEHOLDERS.md. Committed as WebP only; the PNG originals stay in the
+ * gitignored photo-picks/generated/. `position` is the CSS object-position: its y sets the 21:9 desktop crop, its
+ * x the 4:3 phone crop (a 3:2 image loses only top and bottom in one, only the sides in the other). `phone` is a
+ * separate phone source where cropping alone cannot frame it.
+ */
+export interface GeneratedStandIn {
+  file: string;
+  width: number;
+  height: number;
+  scene: string;
+  position: string;
+  phone?: { file: string; width: number; height: number };
+}
+
+const GEN = "/placeholders/generated";
+/** In slide order. */
+export const sliderStandIns: GeneratedStandIn[] = [
+  { file: `${GEN}/gen-meeting-standup.webp`, width: 1536, height: 1024, position: "50% 40%",
+    scene: "three colleagues by a window going through a folder together" },
+  // Phone: a 1300x975 crop from the left, so the walking figure at the right edge is out of frame rather than halved.
+  { file: `${GEN}/gen-admin-open-plan.webp`, width: 1536, height: 1024, position: "40% 45%",
+    scene: "two people working at facing desks in an open-plan office",
+    phone: { file: `${GEN}/gen-admin-open-plan-phone.webp`, width: 1300, height: 975 } },
+  // Painted letterbox bars trimmed off (rows 147-876 kept of 1024).
+  { file: `${GEN}/gen-laptop-pair.webp`, width: 1536, height: 730, position: "50% 50%",
+    scene: "two colleagues side by side at one laptop" },
+  // Painted letterbox bars trimmed off (rows 118-907 kept of 1024).
+  { file: `${GEN}/gen-documents-records.webp`, width: 1536, height: 790, position: "55% 40%",
+    scene: "a man filing a folder into a shelf of box files" },
+  { file: `${GEN}/gen-hr-interview.webp`, width: 1536, height: 1024, position: "45% 25%",
+    scene: "an interview across a desk, the interviewer taking notes" },
+  { file: `${GEN}/gen-payroll-desk.webp`, width: 1536, height: 1024, position: "35% 8%",
+    scene: "a woman checking figures on a printed sheet with a calculator" },
+];
 
 /** Read at build/prerender time in server components. Off by default. */
 export const placeholdersEnabled = process.env.PLACEHOLDER_IMAGES === "true";

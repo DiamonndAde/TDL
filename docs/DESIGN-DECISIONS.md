@@ -826,3 +826,30 @@ against the same Next 16.3.8 on the same machine an hour later, measured 1.95, 2
 says the machine itself was noisy that evening. Next step, on a quiet machine: bisect `ccab8f4` back to the
 September milestone with the probe, and compare Next 16.3.5 against 16.3.8 on the same source. Until then the
 working number is "≤ 2.0 s median, one run in five over 2.5 s", and the brief's < 2.5 s is not reliably met on `/`.
+
+## 2026-10-22 — Generated stand-ins in the home slider (TDL review round 2, Part B)
+
+- **Six AI-generated images replace the four stock photographs in the slider**, in presentation builds only — the
+  client-approved exception recorded on 2026-10-17 (AGENTS.md, Placeholders rule 1). Caption: "Generated stand-in
+  images, not TDL's staff. TDL's own photographs to come." Model, prompts, selection and spend: PLACEHOLDERS.md.
+- **How they were made.** `scripts/generate-slider-images.mjs`: OpenAI Images API direct (no MCP, no SDK),
+  gpt-image-2, 1536×1024, quality medium. It reads the key from `.env.local` and never prints it, writes only to the
+  gitignored `photo-picks/generated/`, refuses outright if a run would exceed the image count passed to it (proved
+  before any call: 8 scenes against a limit of 3 → refused, nothing written), and stops at once on an
+  organisation-verification error, with no retries anywhere because each request costs money.
+- **Round 1, 8 images: 2 usable as generated.** The framing line I added ("plain space above and below, so a very
+  wide crop still shows them") was taken literally: five images came back with flat letterbox bars painted in. Two
+  of those were rescued by trimming the bars — both still cover the 21:9 band at full width and the 4:3 phone crop,
+  9% and 2% short only on 3× phones. Two scenes were re-run at medium with the owner's replacement framing line
+  and a new line against lettering on equipment (a monitor back had come back with brand-like lettering); both
+  passed. No "round 2 at high quality": a higher-quality call makes a different image, not a sharper copy, so the
+  checked medium images are the finals.
+- **Phone art direction for one slide.** The open-plan image's walking figure would be cut in half by the 4:3
+  phone crop. A 3:2 image under `object-fit: cover` can only lose its sides on a phone, so no `object-position`
+  fixes it; that slide carries a second, phone-only source (1300×975, cropped from the left), served through
+  next/image's `getImageProps` and a `<picture>` (bundled docs, Art Direction). Other slides use one source, whose
+  `object-position` y sets the desktop crop and x the phone crop.
+- **Weight.** WebP at quality 86: 624 KB for all seven files (12.6 MB as PNG). next/image re-encodes per request
+  in any case. The four retired stock photographs' files were removed; the sourcing record stays in PLACEHOLDERS.md.
+- **Spend: $0.4175** for 10 images (113 text tokens at $5/M + 1,372 image tokens at $30/M each, from the
+  responses' own usage), against a $2 cap.

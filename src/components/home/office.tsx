@@ -1,17 +1,17 @@
 import { Register } from "@/components/layout/register";
 import { PhotoFrame } from "@/components/ui/photo-frame";
 import { company } from "@/content/facts";
-import { homePhotographs, homePlaceholderSlides, standInCaption } from "@/content/photographs";
-import { emptyFramesHidden, placeholders, placeholdersEnabled } from "@/content/placeholders";
+import { homePhotographs, standInCaption } from "@/content/photographs";
+import { emptyFramesHidden, placeholdersEnabled, sliderStandIns } from "@/content/placeholders";
 import { PhotoSlider, type Slide } from "./photo-slider";
 
 /**
  * "At work": the photograph slider, directly after the proof bar (TDL review, 2026-10-17 — it was near the close).
  * The figures say how many people; this shows who they are. Three states, decided at build time:
  *  - TDL's own photographs (src/content/photographs.ts, Q27): the slider.
- *  - Presentation build with none yet: the slider over stand-in images, under one caption line that says what
- *    they are and claims nothing about TDL — no address, no "our team" (AGENTS.md, Placeholders, rule 3).
- *    Credits live in PLACEHOLDERS.md, not on the images (TDL review, 2026-10-17).
+ *  - Presentation build with none yet: the slider over AI-generated stand-ins (the client-approved exception,
+ *    AGENTS.md Placeholders rule 1), under one caption line that says what they are and claims nothing about
+ *    TDL — no address, no "our team" (rule 3). Model, prompts and approval: PLACEHOLDERS.md.
  *  - Otherwise: the compact reservation note; behind PRESENTATION_HIDE_EMPTY_FRAMES the section is left out.
  * The id stays "office": screenshot and test scripts address the section by it.
  */
@@ -28,14 +28,19 @@ export function Office() {
   }
 
   if (placeholdersEnabled) {
-    const slides: Slide[] = homePlaceholderSlides.map(({ key, position }) => {
-      const p = placeholders[key];
-      return { src: p.file, width: p.width, height: p.height, alt: `Stand-in image: ${p.scene}`, position, placeholder: key };
-    });
+    const slides: Slide[] = sliderStandIns.map((g) => ({
+      src: g.file,
+      width: g.width,
+      height: g.height,
+      alt: `Generated stand-in image: ${g.scene}`,
+      position: g.position,
+      placeholder: g.file.split("/").pop(),
+      phone: g.phone ? { src: g.phone.file, width: g.phone.width, height: g.phone.height } : undefined,
+    }));
     return (
       <Register id="office" title="At work" note={note}>
         <figure>
-          <PhotoSlider slides={slides} label="Stand-in images of people at work" />
+          <PhotoSlider slides={slides} label="Generated stand-in images of people at work" />
           <figcaption className="data mt-2 text-olive">{standInCaption}</figcaption>
         </figure>
       </Register>

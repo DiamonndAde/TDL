@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useAfterFirstPaint } from "@/lib/after-first-paint";
 import { useMotionPreference } from "@/lib/motion-preference";
@@ -14,7 +14,11 @@ export interface Slide {
   position?: string;
   /** Registry key, rendered as data-placeholder so the guard test can find stand-in imagery in a build. */
   placeholder?: string;
+  /** A separate source for phones (below `sm`), where cropping the main image cannot frame it (art direction). */
+  phone?: { src: string; width: number; height: number };
 }
+
+const SIZES = "(min-width: 80rem) 66rem, (min-width: 64rem) 75vw, 100vw";
 
 const SLIDE_MS = 6000;
 const SWIPE_PX = 40;
@@ -133,15 +137,19 @@ export function PhotoSlider({ slides, label }: { slides: Slide[]; label: string 
             className={`absolute inset-0 transition-opacity duration-[900ms] ease-in-out ${i === index ? "opacity-100" : "opacity-0"}`}
           >
             {loaded.has(i) ? (
-              <Image
-                src={s.src}
-                alt={s.alt}
-                width={s.width}
-                height={s.height}
-                className="h-full w-full object-cover"
-                style={{ objectPosition: s.position ?? "50% 50%" }}
-                sizes="(min-width: 80rem) 66rem, (min-width: 64rem) 75vw, 100vw"
-              />
+              s.phone ? (
+                <ArtDirected slide={s} phone={s.phone} />
+              ) : (
+                <Image
+                  src={s.src}
+                  alt={s.alt}
+                  width={s.width}
+                  height={s.height}
+                  className="h-full w-full object-cover"
+                  style={{ objectPosition: s.position ?? "50% 50%" }}
+                  sizes={SIZES}
+                />
+              )
             ) : null}
           </div>
         ))}
@@ -218,6 +226,24 @@ export function PhotoSlider({ slides, label }: { slides: Slide[]; label: string 
         Photograph {index + 1} of {count}
       </p>
     </div>
+  );
+}
+
+/** Two sources, one image: the main crop from `sm`, the phone crop below it (next/image `getImageProps`). */
+function ArtDirected({ slide, phone }: { slide: Slide; phone: NonNullable<Slide["phone"]> }) {
+  const common = { alt: slide.alt, sizes: SIZES };
+  const {
+    props: { srcSet: wide },
+  } = getImageProps({ ...common, src: slide.src, width: slide.width, height: slide.height });
+  const {
+    props: { srcSet: narrow, ...rest },
+  } = getImageProps({ ...common, src: phone.src, width: phone.width, height: phone.height });
+  return (
+    <picture>
+      <source media="(min-width: 640px)" srcSet={wide} />
+      <source srcSet={narrow} />
+      <img {...rest} alt={slide.alt} className="h-full w-full object-cover" style={{ objectPosition: slide.position ?? "50% 50%" }} />
+    </picture>
   );
 }
 
