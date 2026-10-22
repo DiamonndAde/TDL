@@ -31,8 +31,10 @@ const SWIPE_PX = 40;
  *  - a visible pause control over the image, and it pauses while the pointer is over it or focus is inside it;
  *  - never under prefers-reduced-motion: no timer, no pause control, and the global reduced-motion CSS makes
  *    the crossfade instant.
- * The timer IS the active indicator's fill animation: the slide advances on its `animationend`, and pausing sets
- * `animation-play-state: paused`, so a pause resumes where it stopped instead of restarting the six seconds.
+ * The timer IS the active indicator's fill animation: the slide advances on its `animationend`. The current image's
+ * indicator is always marked: filling over 6 s while it plays, a solid ink bar whenever it is not (paused by the
+ * control, hover or focus, or under reduced motion). Since 2026-10-22: a pause used to freeze the fill wherever it
+ * was — at zero just after a change — so no indicator read as current. Playing again starts a fresh six seconds.
  *
  * Controls: progress bars under the image (each a button), a pause/play icon at the image's bottom right,
  * previous/next arrows that appear on hover or keyboard focus from `sm`, arrow keys anywhere inside, and swipe on
@@ -75,6 +77,13 @@ export function PhotoSlider({ slides, label }: { slides: Slide[]; label: string 
     };
   }, []);
 
+  // A visitor's own move (arrow, indicator, key, swipe) ends any Play override, so hover and focus pause it again:
+  // an image someone has just chosen should not slide away under their pointer (2026-10-22).
+  function navigate(i: number) {
+    setOverride(false);
+    goTo(i);
+  }
+
   function goTo(i: number) {
     const n = (i + count) % count;
     setIndex(n);
@@ -105,8 +114,8 @@ export function PhotoSlider({ slides, label }: { slides: Slide[]; label: string 
         if (!hovered) setOverride(false);
       }}
       onKeyDown={(e) => {
-        if (e.key === "ArrowRight") { e.preventDefault(); goTo(index + 1); }
-        else if (e.key === "ArrowLeft") { e.preventDefault(); goTo(index - 1); }
+        if (e.key === "ArrowRight") { e.preventDefault(); navigate(index + 1); }
+        else if (e.key === "ArrowLeft") { e.preventDefault(); navigate(index - 1); }
       }}
     >
       <div
@@ -120,7 +129,7 @@ export function PhotoSlider({ slides, label }: { slides: Slide[]; label: string 
           touchX.current = null;
           if (start === null) return;
           const dx = e.clientX - start;
-          if (Math.abs(dx) >= SWIPE_PX) goTo(index + (dx < 0 ? 1 : -1));
+          if (Math.abs(dx) >= SWIPE_PX) navigate(index + (dx < 0 ? 1 : -1));
         }}
         onPointerCancel={() => {
           touchX.current = null;
@@ -159,7 +168,7 @@ export function PhotoSlider({ slides, label }: { slides: Slide[]; label: string 
             <button
               type="button"
               aria-label="Previous photograph"
-              onClick={() => goTo(index - 1)}
+              onClick={() => navigate(index - 1)}
               className={`${iconButton} absolute left-3 top-1/2 hidden -translate-y-1/2 opacity-0 transition-opacity duration-150 focus-visible:opacity-100 group-hover:opacity-100 sm:flex`}
             >
               <Chevron dir="left" />
@@ -167,7 +176,7 @@ export function PhotoSlider({ slides, label }: { slides: Slide[]; label: string 
             <button
               type="button"
               aria-label="Next photograph"
-              onClick={() => goTo(index + 1)}
+              onClick={() => navigate(index + 1)}
               className={`${iconButton} absolute right-3 top-1/2 hidden -translate-y-1/2 opacity-0 transition-opacity duration-150 focus-visible:opacity-100 group-hover:opacity-100 sm:flex`}
             >
               <Chevron dir="right" />
@@ -199,20 +208,20 @@ export function PhotoSlider({ slides, label }: { slides: Slide[]; label: string 
               type="button"
               aria-label={`Show photograph ${i + 1} of ${count}`}
               aria-current={i === index ? "true" : undefined}
-              onClick={() => goTo(i)}
+              onClick={() => navigate(i)}
               className="flex h-6 w-10 items-center sm:w-14"
             >
               <span className="relative block h-[3px] w-full overflow-hidden bg-olive/30">
                 {i === index ? (
-                  auto ? (
+                  running ? (
                     <span
-                      key={`${index}-${i}`}
+                      key={`fill-${index}`}
                       className="slider-fill absolute inset-0 origin-left bg-ink"
-                      style={{ animationDuration: `${SLIDE_MS}ms`, animationPlayState: running ? "running" : "paused" }}
+                      style={{ animationDuration: `${SLIDE_MS}ms` }}
                       onAnimationEnd={() => goTo(index + 1)}
                     />
                   ) : (
-                    <span className="absolute inset-0 bg-ink" />
+                    <span data-indicator="held" className="absolute inset-0 bg-ink" />
                   )
                 ) : null}
               </span>

@@ -32,10 +32,19 @@ def current(page):
     return page.evaluate("""() => { const b = [...document.querySelectorAll('#office button[aria-label^="Show photograph"]')];
         return b.findIndex(x => x.getAttribute('aria-current') === 'true') + 1; }""")
 
-def fill(page):
-    """How far the active indicator has filled, 0..1."""
-    return page.evaluate("""() => { const f = document.querySelector('#office .slider-fill'); if (!f) return null;
-        const m = new DOMMatrix(getComputedStyle(f).transform); return Math.round(m.a * 100) / 100; }""")
+def mark(page):
+    """The indicators' state: which carry aria-current, and how much of each current one's bar is visibly filled
+    (measured from the drawn width, so a frozen or missing fill reads as 0, not as "unchanged")."""
+    return page.evaluate("""() => { const b = [...document.querySelectorAll('#office button[aria-label^="Show photograph"]')];
+        const cur = b.map((x, i) => [i + 1, x]).filter(([, x]) => x.getAttribute('aria-current') === 'true');
+        return { current: cur.map(([i]) => i), filled: cur.map(([, x]) => { const track = x.querySelector('span');
+            const bar = track && track.querySelector('span'); if (!bar) return 0;
+            return Math.round(bar.getBoundingClientRect().width / track.getBoundingClientRect().width * 100) / 100; }) }; }""")
+
+def held(page, n):
+    """Image n is current, marked by aria-current on exactly its indicator, and its bar is fully filled."""
+    m = mark(page)
+    return m["current"] == [n] and m["filled"] == [1.0], m
 
 with sync_playwright() as p:
     b = p.chromium.launch(headless=True, executable_path=CHROME)
@@ -68,6 +77,8 @@ with sync_playwright() as p:
     page.wait_for_timeout(6800)
     c1 = current(page)
     check(c0 == 1 and c1 == 2, f"auto-advances after 6 s ({c0} -> {c1})")
+    m1 = mark(page); page.wait_for_timeout(1500); m2 = mark(page)
+    check(m1["current"] == [2] and 0 < m1["filled"][0] < m2["filled"][0] < 1, f"while playing, the current bar fills ({m1} -> {m2})")
     fade = page.evaluate("""() => [...document.querySelectorAll('#office [aria-roledescription=slide]')].map(s => [getComputedStyle(s).opacity, getComputedStyle(s).transitionProperty, getComputedStyle(s).transitionDuration])""")
     check(fade[1][0] == "1" and fade[0][0] == "0" and fade[1][1] == "opacity" and fade[1][2] == "0.9s", f"crossfade, not a slide ({fade[:2]})")
     img_ok = page.evaluate("""() => { const im = document.querySelectorAll('#office [aria-roledescription=slide]')[1].querySelector('img'); return !!im && im.complete && im.naturalWidth > 0 }""")
@@ -79,9 +90,9 @@ with sync_playwright() as p:
     page.wait_for_timeout(400)
     arrows = page.evaluate("""() => ['Previous photograph','Next photograph'].map(n => getComputedStyle(document.querySelector(`#office button[aria-label="${n}"]`)).opacity)""")
     check(arrows == ["1", "1"], f"arrows appear on hover ({arrows})")
-    f_hover = fill(page)
     page.wait_for_timeout(7000)
-    check(current(page) == c1 and fill(page) == f_hover, f"hover pauses, the bar holds ({current(page)}, fill {f_hover} -> {fill(page)})")
+    ok, m = held(page, c1)
+    check(ok, f"hover pauses, and the current indicator stays marked, fully filled ({m})")
     page.mouse.move(5, 5)
     page.wait_for_timeout(400)
     arrows = page.evaluate("""() => getComputedStyle(document.querySelector('#office button[aria-label="Next photograph"]')).opacity""")
@@ -107,9 +118,10 @@ with sync_playwright() as p:
     pause.click()
     page.mouse.move(5, 5)
     page.evaluate("document.activeElement.blur()")
-    c3 = current(page); f3 = fill(page)
+    c3 = current(page)
     page.wait_for_timeout(7000)
-    check(current(page) == c3 and fill(page) == f3, f"Pause holds ({c3} -> {current(page)}, fill {f3} -> {fill(page)})")
+    ok, m = held(page, c3)
+    check(ok, f"Pause holds, and the current indicator stays marked, fully filled ({c3}: {m})")
     play = page.get_by_role("button", name="Play slideshow")
     check(play.count() == 1, "control becomes Play")
     play.click()  # pointer and focus now on the control: Play must still start it
@@ -122,6 +134,12 @@ with sync_playwright() as p:
     check(current(page) == 1, f"Next wraps from the last to the first ({current(page)})")
     page.locator('#office button[aria-label="Previous photograph"]').click()
     check(current(page) == N, f"Previous wraps back ({current(page)})")
+    # Clicking an indicator pauses the slider (pointer over it, focus in it): the clicked image's indicator must read
+    # as current — aria-current and a full bar — not a bar frozen at zero (the bug fixed 2026-10-22).
+    page.locator('#office button[aria-label^="Show photograph 4 of"]').click()
+    page.wait_for_timeout(1500)
+    ok, m = held(page, 4)
+    check(ok, f"click indicator 4: it is current and fully marked while paused ({m})")
     # keyboard: arrow keys anywhere inside the region
     page.locator('#office button[aria-label^="Show photograph 2 of"]').click()
     page.keyboard.press("ArrowRight")

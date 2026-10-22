@@ -853,3 +853,20 @@ working number is "≤ 2.0 s median, one run in five over 2.5 s", and the brief'
   in any case. The four retired stock photographs' files were removed; the sourcing record stays in PLACEHOLDERS.md.
 - **Spend: $0.4175** for 10 images (113 text tokens at $5/M + 1,372 image tokens at $30/M each, from the
   responses' own usage), against a $2 cap.
+
+### 2026-10-22 — The current slide's indicator is always marked
+
+- **Bug:** while the slider was paused (pause control, hover, focus, or just after an indicator was clicked) the
+  active indicator's fill was frozen wherever the animation stood — at zero right after a change — so no indicator
+  read as current. Fixed: filling over 6 s while it plays, a solid ink bar whenever it does not. `aria-current` was
+  already on the current indicator; the test now asserts it alongside the visible bar.
+- **Consequence, accepted:** playing again starts a fresh six seconds rather than resuming part-way, because a full
+  bar cannot honestly resume from 40%.
+- **Second fix found by the new test:** pressing Play while the pointer was over the slider overrode hover-pause
+  (so Play could work at all), but the override then lasted through every later click — choosing an image with an
+  indicator let it slide away under the pointer. Any manual move (arrow, indicator, key, swipe) now ends the
+  override, so hover and focus pause again.
+- **Test:** `test:slider` measures the drawn width of the current bar, not the animation's transform. The old
+  helper returned nothing when paused, so its "the bar holds" checks passed without checking anything. On the
+  previous code the new checks failed: bars at 0.66, 0.84 and 0.25 while paused. With the fix: 1.0, 1.0, 1.0, and
+  0.30 → 0.55 while playing.

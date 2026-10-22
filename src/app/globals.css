@@ -103,7 +103,7 @@
 }
 
 /* The home slider's active indicator. Its fill IS the slider's timer: the slide advances on animationend, and
-   pausing sets animation-play-state, so a pause resumes where it stopped (photo-slider.tsx). */
+   while paused the current indicator is a solid bar instead, so it always reads as current (photo-slider.tsx). */
 @keyframes slider-fill {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
